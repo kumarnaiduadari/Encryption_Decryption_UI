@@ -1,0 +1,138 @@
+.auth-container {
+  display: flex;
+  justify-content: flex-end; /* Keep everything on the right */
+  align-items: center;
+  min-height: 100vh;
+  background: #f0f2f5;
+  padding-right: 250px;
+}
+
+.auth-wrapper {
+  width: 400px;
+  background: white;
+  border-radius: 50px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.auth-tabs {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 15px;
+  border: none;
+  background: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.tab-button.active {
+  background: white;
+  border-bottom: 2px solid #f55617;
+}
+
+.tab-button:hover {
+  background: #13c23f;
+}
+
+.forms-container {
+  overflow: hidden;
+  height: 450px; /* Adjust based on your needs */
+}
+
+.forms-slider {
+  display: flex;
+  width: 400%; /* Quadruple width for four forms */
+  transition: transform 0.6s ease-in-out;
+}
+
+.form {
+  width: 25%; /* Each form takes one-fourth of the slider width */
+  padding: 30px;
+}
+
+.login-form {
+  padding: 30px; /* Consistent with your previous form-login-form */
+}
+
+.register-form, .forgot-form, .lost-auth-form {
+  transform: translateX(0);
+}
+
+.slide-login {
+  transform: translateX(0);
+}
+
+.slide-register {
+  transform: translateX(-25%);
+}
+
+.slide-forgot {
+  transform: translateX(-50%);
+}
+
+.slide-lost-auth {
+  transform: translateX(-75%);
+}
+
+.input-group {
+  margin-bottom: 15px;
+  position: relative;
+}
+
+input {
+  width: 80%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 50px;
+  font-size: 16px;
+}
+
+.auth-button {
+  width: 70%;
+  padding: 12px;
+  background: #007bff;
+  border: none;
+  border-radius: 30px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.auth-button:hover {
+  background: #0056b3;
+}
+
+.error {
+  color: #dc3545;
+  font-size: 12px;
+  position: absolute;
+  bottom: -15px;
+  left: 0;
+}
+
+.server-error {
+  text-align: center;
+  margin: 10px 0;
+  position: static;
+}
+
+.forgot-link, .back-link, .lost-auth-link {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.forgot-link span, .back-link span, .lost-auth-link span {
+  color: #007bff;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.forgot-link span:hover, .back-link span:hover, .lost-auth-link span:hover {
+  text-decoration: underline;
+}
