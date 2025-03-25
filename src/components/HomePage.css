@@ -1,0 +1,19 @@
+.home-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: #f0f2f5;
+  }
+  
+  .home-container h1 {
+    color: #007bff;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+  }
+  
+  .home-container p {
+    font-size: 1.2rem;
+    color: #666;
+  }

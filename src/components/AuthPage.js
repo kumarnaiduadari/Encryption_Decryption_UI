@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { QRCodeSVG } from 'qrcode.react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import './AuthPage.css';
 
 const AuthPage = () => {
@@ -15,7 +17,9 @@ const AuthPage = () => {
   });
   const [forgotForm, setForgotForm] = useState({ email: '' });
   const [lostAuthForm, setLostAuthForm] = useState({ email: '' });
+  const [qrCodeUrl, setQrCodeUrl] = useState(null);
   const [errors, setErrors] = useState({});
+  const navigate = useNavigate(); // Hook for navigation
 
   const validateLogin = () => {
     const newErrors = {};
@@ -81,7 +85,6 @@ const AuthPage = () => {
       setErrors(validationErrors);
       return;
     }
-    // Map frontend field names to backend expected names
     const payload = {
       email: loginForm.email,
       password: loginForm.password,
@@ -90,16 +93,11 @@ const AuthPage = () => {
     try {
       const response = await axios.post('http://localhost:8000/login', payload);
       console.log('Login successful:', response.data);
-      setLoginForm({ email: '', password: '', googleOtp: '' }); // Reset form
+      setLoginForm({ email: '', password: '', googleOtp: '' });
+      navigate('/home'); // Redirect to HomePage.js
     } catch (error) {
       console.error('Login error:', error.response);
-      const errorDetail = error.response?.data?.detail;
-      if (Array.isArray(errorDetail)) {
-        const errorMessages = errorDetail.map(err => err.msg).join(', ');
-        setErrors({ server: errorMessages || 'Login failed' });
-      } else {
-        setErrors({ server: error.response?.data?.detail || 'Login failed' });
-      }
+      setErrors({ server: error.response?.data?.detail || 'Login failed' });
     }
   };
 
@@ -118,8 +116,25 @@ const AuthPage = () => {
       password: userData.password
     };
     try {
-      const response = await axios.post('http://localhost:8000/add_user', payload);
-      console.log('Registration successful:', response.data);
+      const registerResponse = await axios.post('http://localhost:8000/add_user', payload);
+      console.log('Registration successful:', registerResponse.data);
+
+      const qrResponse = await axios.post('http://localhost:8000/generate_qr', {
+        email: userData.email
+      });
+      console.log('QR Response:', qrResponse.data);
+
+      const qrUrl = qrResponse.data.data.qr_url; // Your updated field
+      if (qrUrl) {
+        setQrCodeUrl(qrUrl);
+        setActiveForm('qr-scan');
+        setLoginForm({ ...loginForm, email: userData.email });
+      } else {
+        console.log('QR code URL not found in response:', qrResponse.data);
+        setErrors({ server: 'QR code generation failed - No QR URL in response' });
+        setActiveForm('login');
+      }
+
       setRegisterForm({
         firstName: '',
         lastName: '',
@@ -127,16 +142,9 @@ const AuthPage = () => {
         password: '',
         confirmPassword: ''
       });
-      setActiveForm('login');
     } catch (error) {
-      console.error('Registration error:', error.response);
-      const errorDetail = error.response?.data?.detail;
-      if (Array.isArray(errorDetail)) {
-        const errorMessages = errorDetail.map(err => err.msg).join(', ');
-        setErrors({ server: errorMessages || 'Registration failed' });
-      } else {
-        setErrors({ server: error.response?.data?.detail || 'Registration failed' });
-      }
+      console.error('Error:', error.response);
+      setErrors({ server: error.response?.data?.detail || 'Registration or QR code generation failed' });
     }
   };
 
@@ -150,7 +158,7 @@ const AuthPage = () => {
     try {
       const response = await axios.post('http://localhost:8000/api/forgot-password', forgotForm);
       console.log('OTP sent:', response.data);
-      alert('OTP has been sent to your email. Please check your inbox.');
+      alert('OTP has been sent to your email.');
       setActiveForm('login');
     } catch (error) {
       setErrors({ server: error.response?.data?.message || 'Failed to send OTP' });
@@ -167,7 +175,7 @@ const AuthPage = () => {
     try {
       const response = await axios.post('http://localhost:8000/api/lost-authenticator', lostAuthForm);
       console.log('Recovery email sent:', response.data);
-      alert('A recovery email has been sent. Please check your inbox.');
+      alert('Recovery email sent.');
       setActiveForm('login');
     } catch (error) {
       setErrors({ server: error.response?.data?.message || 'Failed to send recovery email' });
@@ -211,7 +219,13 @@ const AuthPage = () => {
         </div>
 
         <div className="forms-container">
-          <div className={`forms-slider ${activeForm === 'login' ? 'slide-login' : activeForm === 'register' ? 'slide-register' : activeForm === 'forgot' ? 'slide-forgot' : 'slide-lost-auth'}`}>
+          <div className={`forms-slider ${
+            activeForm === 'login' ? 'slide-login' :
+            activeForm === 'register' ? 'slide-register' :
+            activeForm === 'forgot' ? 'slide-forgot' :
+            activeForm === 'lost-auth' ? 'slide-lost-auth' :
+            activeForm === 'qr-scan' ? 'slide-qr-scan' : ''
+          }`}>
             <div className="form login-form">
               <form onSubmit={handleLoginSubmit}>
                 <div className="input-group">
@@ -267,7 +281,7 @@ const AuthPage = () => {
                   />
                   {errors.firstName && <span className="error">{errors.firstName}</span>}
                 </div>
-                <div className= "input-group">
+                <div className="input-group">
                   <input
                     type="text"
                     name="lastName"
@@ -350,6 +364,24 @@ const AuthPage = () => {
                   <span onClick={() => setActiveForm('login')}>Back to Login</span>
                 </p>
               </form>
+            </div>
+
+            <div className="form qr-scan-form">
+              <h3>Scan QR Code</h3>
+              <p>Scan this QR code with Google Authenticator to set up 2FA.</p>
+              {qrCodeUrl ? (
+                <div className="qr-code-container">
+                  <QRCodeSVG value={qrCodeUrl} size={200} />
+                </div>
+              ) : (
+                <p>Loading QR code...</p>
+              )}
+              <button
+                className="auth-button"
+                onClick={() => setActiveForm('login')}
+              >
+                Proceed to Login
+              </button>
             </div>
           </div>
         </div>
