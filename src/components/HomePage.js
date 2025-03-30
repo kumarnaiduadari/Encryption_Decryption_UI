@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
-import { FaUpload, FaSignOutAlt } from 'react-icons/fa';
+import { FaUpload, FaSignOutAlt, FaCopy } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import './HomePage.css';
 
@@ -11,10 +11,10 @@ const HomePage = () => {
   const [fileResult, setFileResult] = useState(null);
   const [textError, setTextError] = useState('');
   const [fileError, setFileError] = useState('');
+  const [showResultCard, setShowResultCard] = useState(false); // State to toggle result card
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
-  // Get email from localStorage
   const email = localStorage.getItem('email');
 
   const handleFileChange = (e) => {
@@ -22,7 +22,6 @@ const HomePage = () => {
     setFileResult(null);
     setFileError('');
   };
-
   const encryptFile = async () => {
     if (!file) {
       setFileError('Please select a file first.');
@@ -32,44 +31,79 @@ const HomePage = () => {
       setFileError('No email found in local storage.');
       return;
     }
-
+  
     const formData = new FormData();
     formData.append('file', file);
     formData.append('email', email);
-
+  
     try {
       const response = await axios.post('http://localhost:8000/encrypt', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
-        responseType: 'blob',
-      });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      setFileResult({ url, name: `encrypted_${file.name}` });
+      }); // Remove responseType: 'blob'
+      const filePath = response.data.file_path; // Get the file path from the response
+  
+      // Create a download link and trigger the download
+      const link = document.createElement('a');
+      link.href = `http://localhost:8000/download?file_path=${encodeURIComponent(filePath)}`; // Create a download URL
+      link.setAttribute('download', `${file.name}.enc`); // Set the download filename
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+  
+      setFileResult({ url: null, name: `${file.name}.enc` }); // Update fileResult
       setFileError('');
     } catch (err) {
       setFileError(err.response?.data?.detail || 'File encryption failed.');
     }
   };
-
   const decryptFile = async () => {
     if (!file) {
       setFileError('Please select a file first.');
       return;
     }
-
+  
     const formData = new FormData();
     formData.append('file', file);
-
+  
     try {
       const response = await axios.post('http://localhost:8000/decrypt', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
-        responseType: 'blob',
       });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      setFileResult({ url, name: `decrypted_${file.name}` });
+      const filePath = response.data.file_path;
+  
+      // Remove .enc from the filename
+      let decryptedFileName = file.name;
+      if (decryptedFileName.endsWith('.enc')) {
+        decryptedFileName = decryptedFileName.slice(0, -4); // Remove last 4 characters (.enc)
+      }
+  
+      // Create a download link and trigger the download
+      const link = document.createElement('a');
+      link.href = `http://localhost:8000/download?file_path=${encodeURIComponent(filePath)}`;
+      link.setAttribute('download', decryptedFileName);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+  
+      setFileResult({ url: null, name: decryptedFileName });
       setFileError('');
     } catch (err) {
       setFileError(err.response?.data?.detail || 'File decryption failed.');
     }
+  };
+
+  const downloadFile = () => {
+    if (!fileResult || !fileResult.url) {
+      setFileError('No file available for download.');
+      return;
+    }
+
+    const link = document.createElement('a');
+    link.href = fileResult.url;
+    link.setAttribute('download', fileResult.name || 'encrypted_file.enc');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const encryptText = async () => {
@@ -84,13 +118,13 @@ const HomePage = () => {
 
     try {
       const response = await axios.post('http://localhost:8000/encrypt_text', {
-        email, // Include email only for encryption
-        text
-
+        email,
+        text,
       });
       setTextResult(response.data.encrypted_text);
       setTextError('');
       setText('');
+      setShowResultCard(true); // Show result card
     } catch (err) {
       setTextError(err.response?.data?.detail || 'Text encryption failed.');
     }
@@ -103,18 +137,26 @@ const HomePage = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:8000/decrypt_text', {encrypted_text: text});
+      const response = await axios.post('http://localhost:8000/decrypt_text', {
+        encrypted_text: text,
+      });
       setTextResult(response.data.decrypted_text);
       setTextError('');
       setText('');
+      setShowResultCard(true); // Show result card
     } catch (err) {
       setTextError(err.response?.data?.detail || 'Text decryption failed.');
     }
   };
 
+  // Function to copy text to clipboard
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(textResult);
+    alert('Text copied to clipboard!');
+  };
+
   const handleLogout = () => {
-    localStorage.setItem("authenticated", "false");
-    //localStorage.removeItem('email'); // Clear email on logout
+    localStorage.setItem('authenticated', 'false');
     navigate('/', { state: { message: 'You have been logged out' } });
   };
 
@@ -152,11 +194,9 @@ const HomePage = () => {
               </p>
             )}
             {fileResult && (
-              <p className="result">
-                <a href={fileResult.url} download={fileResult.name}>
-                  Download {fileResult.name}
-                </a>
-              </p>
+              <button className="download-btn" onClick={downloadFile}>
+                Download {fileResult.name}
+              </button>
             )}
             <div className="button-group">
               <button className="action-button encrypt" onClick={encryptFile}>
@@ -188,12 +228,11 @@ const HomePage = () => {
                       {err.msg} (Location: {err.loc.join(' -> ')})
                     </div>
                   ))
-                  : typeof textError == 'string'
+                  : typeof textError === 'string'
                     ? textError
                     : JSON.stringify(textError)}
               </p>
             )}
-            {textResult && <p className="result">Result: {textResult}</p>}
             <div className="button-group">
               <button className="action-button encrypt" onClick={encryptText}>
                 Encrypt Text
@@ -205,6 +244,33 @@ const HomePage = () => {
           </div>
         </div>
       </div>
+
+      {/* Result Card */}
+      {showResultCard && (
+        <div className="result-card">
+          <div className="card-header-text">
+            <h3>Encrypted /Decrypted Text</h3>
+            <FaCopy
+              className="copy-icon"
+              onClick={copyToClipboard}
+              title="Copy to clipboard"
+            />
+            <button
+              className="close-button"
+              onClick={() => setShowResultCard(false)}
+            >
+              ×
+            </button>
+          </div>
+          <div className="card-body-result">
+            <div className="result-content">
+              <p className="text-result">{textResult}</p>
+            </div>
+            
+          </div>
+
+        </div>
+      )}
     </div>
   );
 };
