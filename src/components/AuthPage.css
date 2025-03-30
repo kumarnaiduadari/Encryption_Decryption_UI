@@ -57,8 +57,9 @@
 
 /* Individual form styling */
 .form {
-  width: 20%; /* Each form takes 1/5 of the slider width */
+  width: 25%; /* Each form takes 1/5 of the slider width */
   padding: 30px;
+  
 }
 
 /* Sliding positions */
@@ -94,19 +95,24 @@ input {
   border: 1px solid #ddd;
   border-radius: 50px;
   font-size: 16px;
+  display: block; /* Add this */
+  margin: 0 auto;
 }
 
 /* Button styling */
 .auth-button {
-  width: 70%;
+  width: 50%;
   padding: 12px;
   background: #007bff;
+  text-align: center;
   border: none;
-  border-radius: 30px;
+  border-radius: 50px;
   color: white;
   font-size: 16px;
   cursor: pointer;
   transition: background 0.3s;
+  display: block; /* Add this */
+  margin: 0 auto;
 }
 
 .auth-button:hover {
@@ -167,4 +173,36 @@ input {
   margin-bottom: 20px;
   font-size: 14px;
   color: #666;
+}
+.logout-message {
+  color: #4caf50;
+  font-size: 16px;
+  margin: 10px 0;
+  text-align: center;
+  padding: 10px;
+  background-color: #e8f5e9;
+  border-radius: 5px;
+}
+
+.timer {
+  text-align: center;
+  color: #666;
+  margin: 10px 0;
+}
+
+.otp-message {
+  text-align: center;
+  color: #28a745; /* Green color for success messages */
+  margin: 10px 0;
+}
+
+.qr-code-container {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.verifying-message {
+  text-align: center;
+  color: #007bff; /* Blue to indicate processing */
+  margin: 10px 0;
 }

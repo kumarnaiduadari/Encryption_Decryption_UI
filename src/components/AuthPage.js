@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { QRCodeSVG } from 'qrcode.react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 import './AuthPage.css';
 
 const AuthPage = () => {
@@ -15,11 +15,42 @@ const AuthPage = () => {
     password: '',
     confirmPassword: ''
   });
-  const [forgotForm, setForgotForm] = useState({ email: '' });
-  const [lostAuthForm, setLostAuthForm] = useState({ email: '' });
+  const [forgotForm, setForgotForm] = useState({ 
+    email: '', 
+    otp: '', 
+    newPassword: '', 
+    confirmNewPassword: '' 
+  });
+  const [lostAuthForm, setLostAuthForm] = useState({ 
+    email: '', 
+    otp: '' 
+  });
   const [qrCodeUrl, setQrCodeUrl] = useState(null);
   const [errors, setErrors] = useState({});
-  const navigate = useNavigate(); // Hook for navigation
+  const [otpTimer, setOtpTimer] = useState(120);
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isOtpVerified, setIsOtpVerified] = useState(false);
+  const [otpMessage, setOtpMessage] = useState('');
+  const [referenceKey, setReferenceKey] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    let timer;
+    if (isOtpSent && otpTimer > 0 && !isOtpVerified) {
+      timer = setInterval(() => {
+        setOtpTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [isOtpSent, otpTimer, isOtpVerified]);
+
+  useEffect(() => {
+    if (otpTimer === 0 && !isOtpVerified) {
+      setIsOtpSent(false);
+      setErrors({ otp: 'OTP has expired. Please request a new one.' });
+    }
+  }, [otpTimer, isOtpVerified]);
 
   const validateLogin = () => {
     const newErrors = {};
@@ -48,6 +79,16 @@ const AuthPage = () => {
     const newErrors = {};
     if (!forgotForm.email) newErrors.email = 'Email is required';
     else if (!/\S+@\S+\.\S+/.test(forgotForm.email)) newErrors.email = 'Email is invalid';
+    if (isOtpSent && !isOtpVerified) {
+      if (!forgotForm.otp) newErrors.otp = 'OTP is required';
+      else if (!/^\d{6}$/.test(forgotForm.otp)) newErrors.otp = 'OTP must be a 6-digit number';
+    }
+    if (isOtpVerified) {
+      if (!forgotForm.newPassword) newErrors.newPassword = 'New password is required';
+      else if (forgotForm.newPassword.length < 6) newErrors.newPassword = 'Password must be at least 6 characters';
+      if (forgotForm.newPassword !== forgotForm.confirmNewPassword) 
+        newErrors.confirmNewPassword = 'Passwords do not match';
+    }
     return newErrors;
   };
 
@@ -55,6 +96,10 @@ const AuthPage = () => {
     const newErrors = {};
     if (!lostAuthForm.email) newErrors.email = 'Email is required';
     else if (!/\S+@\S+\.\S+/.test(lostAuthForm.email)) newErrors.email = 'Email is invalid';
+    if (isOtpSent && !isOtpVerified) {
+      if (!lostAuthForm.otp) newErrors.otp = 'OTP is required';
+      else if (!/^\d{6}$/.test(lostAuthForm.otp)) newErrors.otp = 'OTP must be a 6-digit number';
+    }
     return newErrors;
   };
 
@@ -74,8 +119,15 @@ const AuthPage = () => {
   };
 
   const handleLostAuthChange = (e) => {
-    setLostAuthForm({ ...lostAuthForm, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: '' });
+    const { name, value } = e.target;
+    setLostAuthForm({ ...lostAuthForm, [name]: value });
+    
+    if (name === 'email' && value && /\S+@\S+\.\S+/.test(value)) {
+      setErrors(prev => ({ ...prev, email: '' }));
+    }
+    if (name === 'otp' && value && /^\d{6}$/.test(value)) {
+      setErrors(prev => ({ ...prev, otp: '' }));
+    }
   };
 
   const handleLoginSubmit = async (e) => {
@@ -93,8 +145,9 @@ const AuthPage = () => {
     try {
       const response = await axios.post('http://localhost:8000/login', payload);
       console.log('Login successful:', response.data);
-      setLoginForm({ email: '', password: '', googleOtp: '' });
-      navigate('/home'); // Redirect to HomePage.js
+      localStorage.setItem("authenticated", "true");
+      localStorage.setItem("email", loginForm.email)
+      navigate('/home');
     } catch (error) {
       console.error('Login error:', error.response);
       setErrors({ server: error.response?.data?.detail || 'Login failed' });
@@ -124,10 +177,11 @@ const AuthPage = () => {
       });
       console.log('QR Response:', qrResponse.data);
 
-      const qrUrl = qrResponse.data.data.qr_url; // Your updated field
+      const qrUrl = qrResponse.data.qr_url;
       if (qrUrl) {
         setQrCodeUrl(qrUrl);
         setActiveForm('qr-scan');
+        localStorage.setItem("authenticated", "false");
         setLoginForm({ ...loginForm, email: userData.email });
       } else {
         console.log('QR code URL not found in response:', qrResponse.data);
@@ -155,13 +209,54 @@ const AuthPage = () => {
       setErrors(validationErrors);
       return;
     }
-    try {
-      const response = await axios.post('http://localhost:8000/api/forgot-password', forgotForm);
-      console.log('OTP sent:', response.data);
-      alert('OTP has been sent to your email.');
-      setActiveForm('login');
-    } catch (error) {
-      setErrors({ server: error.response?.data?.message || 'Failed to send OTP' });
+
+    if (!isOtpSent) {
+      try {
+        const response = await axios.post('http://localhost:8000/generate_otp', {
+          email: forgotForm.email
+        });
+        console.log('OTP sent:', response.data);
+        const refKey = response.data.reference_key;
+        setReferenceKey(refKey);
+        setIsOtpSent(true);
+        setOtpTimer(120);
+        setOtpMessage(`Enter OTP with this reference key: ${refKey}`);
+      } catch (error) {
+        setErrors({ server: error.response?.data?.message || 'Failed to send OTP' });
+      }
+    } else if (isOtpSent && !isOtpVerified) {
+      try {
+        setIsVerifying(true);
+        const response = await axios.post('http://localhost:8000/verify_otp_fp', {
+          email: forgotForm.email,
+          otp: forgotForm.otp,
+          reference_key: referenceKey
+        });
+        console.log('OTP verified:', response.data);
+        setIsOtpVerified(true);
+        setOtpMessage('OTP verified successfully. Please enter your new password.');
+        setErrors({});
+      } catch (error) {
+        setErrors({ server: error.response?.data?.message || 'Invalid OTP' });
+      } finally {
+        setIsVerifying(false);
+      }
+    } else if (isOtpVerified) {
+      try {
+        const response = await axios.post('http://localhost:8000/update_password', {
+          email: forgotForm.email,
+          new_password: forgotForm.newPassword
+        });
+        console.log('Password reset successful:', response.data);
+        setOtpMessage('Password reset successfully. Please log in with your new password.');
+        setActiveForm('login');
+        setIsOtpSent(false);
+        setIsOtpVerified(false);
+        setForgotForm({ email: '', otp: '', newPassword: '', confirmNewPassword: '' });
+        setReferenceKey('');
+      } catch (error) {
+        setErrors({ server: error.response?.data?.message || 'Failed to reset password' });
+      }
     }
   };
 
@@ -172,13 +267,45 @@ const AuthPage = () => {
       setErrors(validationErrors);
       return;
     }
-    try {
-      const response = await axios.post('http://localhost:8000/api/lost-authenticator', lostAuthForm);
-      console.log('Recovery email sent:', response.data);
-      alert('Recovery email sent.');
-      setActiveForm('login');
-    } catch (error) {
-      setErrors({ server: error.response?.data?.message || 'Failed to send recovery email' });
+
+    if (!isOtpSent) {
+      try {
+        const response = await axios.post('http://localhost:8000/generate_otp', {
+          email: lostAuthForm.email
+        });
+        console.log('OTP sent:', response.data);
+        const refKey = response.data.reference_key;
+        setReferenceKey(refKey);
+        setIsOtpSent(true);
+        setOtpTimer(120);
+        setOtpMessage(`Enter OTP with this reference key: ${refKey}`);
+        setErrors({});
+      } catch (error) {
+        setErrors({ server: error.response?.data?.message || 'Failed to send OTP' });
+      }
+    } else if (isOtpSent && !isOtpVerified) {
+      try {
+        setIsVerifying(true);
+        const response = await axios.post('http://localhost:8000/verify_otp_qr', {
+          email: lostAuthForm.email,
+          otp: lostAuthForm.otp,
+          reference_key: referenceKey
+        });
+        console.log('OTP verified:', response.data);
+        const qrUrl = response.data.qr_url;
+        if (qrUrl) {
+          setQrCodeUrl(qrUrl);
+          setIsOtpVerified(true);
+          setOtpMessage('Scan the QR code to reset your authenticator.');
+          setErrors({});
+        } else {
+          setErrors({ server: 'QR code URL not found in response' });
+        }
+      } catch (error) {
+        setErrors({ server: error.response?.data?.message || 'Invalid OTP' });
+      } finally {
+        setIsVerifying(false);
+      }
     }
   };
 
@@ -192,12 +319,24 @@ const AuthPage = () => {
     setActiveForm('forgot');
     setIsLogin(true);
     setErrors({});
+    setIsOtpSent(false);
+    setIsOtpVerified(false);
+    setOtpTimer(120);
+    setOtpMessage('');
+    setReferenceKey('');
   };
 
   const handleLostAuthenticator = () => {
     setActiveForm('lost-auth');
     setIsLogin(true);
     setErrors({});
+    setIsOtpSent(false);
+    setIsOtpVerified(false);
+    setOtpTimer(120);
+    setOtpMessage('');
+    setReferenceKey('');
+    setQrCodeUrl(null);
+    setIsVerifying(false);
   };
 
   return (
@@ -236,7 +375,6 @@ const AuthPage = () => {
                     value={loginForm.email}
                     onChange={handleLoginChange}
                   />
-                  {errors.email && <span className="error">{errors.email}</span>}
                 </div>
                 <div className="input-group">
                   <input
@@ -246,7 +384,6 @@ const AuthPage = () => {
                     value={loginForm.password}
                     onChange={handleLoginChange}
                   />
-                  {errors.password && <span className="error">{errors.password}</span>}
                 </div>
                 <div className="input-group">
                   <input
@@ -256,9 +393,7 @@ const AuthPage = () => {
                     value={loginForm.googleOtp}
                     onChange={handleLoginChange}
                   />
-                  {errors.googleOtp && <span className="error">{errors.googleOtp}</span>}
                 </div>
-                {errors.server && <div className="error server-error">{errors.server}</div>}
                 <button type="submit" className="auth-button">Login</button>
                 <p className="forgot-link">
                   <span onClick={handleForgotPassword}>Forgot Password?</span>
@@ -279,7 +414,6 @@ const AuthPage = () => {
                     value={registerForm.firstName}
                     onChange={handleRegisterChange}
                   />
-                  {errors.firstName && <span className="error">{errors.firstName}</span>}
                 </div>
                 <div className="input-group">
                   <input
@@ -289,7 +423,6 @@ const AuthPage = () => {
                     value={registerForm.lastName}
                     onChange={handleRegisterChange}
                   />
-                  {errors.lastName && <span className="error">{errors.lastName}</span>}
                 </div>
                 <div className="input-group">
                   <input
@@ -299,7 +432,6 @@ const AuthPage = () => {
                     value={registerForm.email}
                     onChange={handleRegisterChange}
                   />
-                  {errors.email && <span className="error">{errors.email}</span>}
                 </div>
                 <div className="input-group">
                   <input
@@ -309,7 +441,6 @@ const AuthPage = () => {
                     value={registerForm.password}
                     onChange={handleRegisterChange}
                   />
-                  {errors.password && <span className="error">{errors.password}</span>}
                 </div>
                 <div className="input-group">
                   <input
@@ -319,9 +450,7 @@ const AuthPage = () => {
                     value={registerForm.confirmPassword}
                     onChange={handleRegisterChange}
                   />
-                  {errors.confirmPassword && <span className="error">{errors.confirmPassword}</span>}
                 </div>
-                {errors.server && <div className="error server-error">{errors.server}</div>}
                 <button type="submit" className="auth-button">Register</button>
               </form>
             </div>
@@ -335,11 +464,56 @@ const AuthPage = () => {
                     placeholder="Enter your email"
                     value={forgotForm.email}
                     onChange={handleForgotChange}
+                    disabled={isOtpSent}
                   />
-                  {errors.email && <span className="error">{errors.email}</span>}
                 </div>
-                {errors.server && <div className="error server-error">{errors.server}</div>}
-                <button type="submit" className="auth-button">Send OTP</button>
+                {isOtpSent && !isOtpVerified && (
+                  <>
+                    <div className="input-group">
+                      <input
+                        type="text"
+                        name="otp"
+                        placeholder="Enter OTP"
+                        value={forgotForm.otp}
+                        onChange={handleForgotChange}
+                      />
+                    </div>
+                    <p className="timer">Time remaining: {otpTimer} seconds</p>
+                  </>
+                )}
+                {isOtpVerified && (
+                  <>
+                    <div className="input-group">
+                      <input
+                        type="password"
+                        name="newPassword"
+                        placeholder="New Password"
+                        value={forgotForm.newPassword}
+                        onChange={handleForgotChange}
+                      />
+                    </div>
+                    <div className="input-group">
+                      <input
+                        type="password"
+                        name="confirmNewPassword"
+                        placeholder="Confirm New Password"
+                        value={forgotForm.confirmNewPassword}
+                        onChange={handleForgotChange}
+                      />
+                    </div>
+                  </>
+                )}
+                {otpMessage && <p className="otp-message">{otpMessage}</p>}
+                {!isVerifying && (
+                  <button 
+                    type="submit" 
+                    className="auth-button"
+                    disabled={isOtpSent && !isOtpVerified && otpTimer === 0}
+                  >
+                    {!isOtpSent ? 'Send OTP' : !isOtpVerified ? 'Verify OTP' : 'Reset Password'}
+                  </button>
+                )}
+                {isVerifying && <p className="verifying-message">Verifying OTP...</p>}
                 <p className="back-link">
                   <span onClick={() => setActiveForm('login')}>Back to Login</span>
                 </p>
@@ -355,11 +529,40 @@ const AuthPage = () => {
                     placeholder="Enter your email"
                     value={lostAuthForm.email}
                     onChange={handleLostAuthChange}
+                    disabled={isOtpSent}
                   />
-                  {errors.email && <span className="error">{errors.email}</span>}
                 </div>
-                {errors.server && <div className="error server-error">{errors.server}</div>}
-                <button type="submit" className="auth-button">Send Recovery Email</button>
+                {isOtpSent && !isOtpVerified && (
+                  <>
+                    <div className="input-group">
+                      <input
+                        type="text"
+                        name="otp"
+                        placeholder="Enter OTP"
+                        value={lostAuthForm.otp}
+                        onChange={handleLostAuthChange}
+                      />
+                    </div>
+                    <p className="timer">Time remaining: {otpTimer} seconds</p>
+                  </>
+                )}
+                {isOtpVerified && qrCodeUrl && (
+                  <div className="qr-code-container">
+                    <h3>Scan QR Code</h3>
+                    <QRCodeSVG value={qrCodeUrl} size={200} />
+                  </div>
+                )}
+                {otpMessage && <p className="otp-message">{otpMessage}</p>}
+                {!isVerifying && !isOtpVerified && (
+                  <button 
+                    type="submit" 
+                    className="auth-button"
+                    disabled={isOtpSent && !isOtpVerified && otpTimer === 0}
+                  >
+                    {!isOtpSent ? 'Send OTP' : 'Verify OTP'}
+                  </button>
+                )}
+                {isVerifying && <p className="verifying-message">Verifying OTP...</p>}
                 <p className="back-link">
                   <span onClick={() => setActiveForm('login')}>Back to Login</span>
                 </p>
