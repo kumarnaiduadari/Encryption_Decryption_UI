@@ -121,17 +121,14 @@ input {
 
 /* Error message styling */
 .error {
-  color: #dc3545;
-  font-size: 12px;
-  position: absolute;
-  bottom: -15px;
-  left: 0;
+  color: #ff3333;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
 }
-
 .server-error {
+  margin-top: 1rem;
   text-align: center;
-  margin: 10px 0;
-  position: static;
 }
 
 /* Links styling */
@@ -206,3 +203,22 @@ input {
   color: #007bff; /* Blue to indicate processing */
   margin: 10px 0;
 }
+
+.password-feedback {
+  margin-top: 5px;
+  font-size: 12px;
+}
+
+.password-feedback p {
+  margin: 2px 0;
+}
+
+.valid {
+  color: #2ecc71;
+}
+
+.invalid {
+  color: #e74c3c;
+}
+
+/* Add this to your existing CSS */
