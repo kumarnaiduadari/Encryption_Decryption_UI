@@ -7,7 +7,24 @@
   background: #f0f2f5;
   padding-right: 250px;
 }
-
+.auth-image {
+  display: flex;
+  justify-content: flex-start;
+  width: 700px; /* Set the desired width */
+  height: 500px; /* Set the desired height */
+  object-fit: cover; /* Ensure the image covers the area without distortion */
+  border-radius: 50px;
+  
+  
+}
+.auth-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 100vh;
+  background: #f0f2f5;
+  padding: 0 150px; /* Add padding on both sides to create space */
+}
 /* Wrapper for the auth card */
 .auth-wrapper {
   width: 400px;
@@ -98,6 +115,7 @@ input {
   display: block; /* Add this */
   margin: 0 auto;
 }
+
 
 /* Button styling */
 .auth-button {

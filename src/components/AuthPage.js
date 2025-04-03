@@ -3,6 +3,7 @@ import axios from 'axios';
 import { QRCodeSVG } from 'qrcode.react';
 import { useNavigate } from 'react-router-dom';
 import './AuthPage.css';
+import authImage from 'D:/React project/encrypt_decrypt_ui/src/assests/difference-B-T-Encryption-Decryption.jpg'; // Adjust the path if your folder structure is different
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -519,7 +520,12 @@ const AuthPage = () => {
   };
 
   return (
+
+    
     <div className="auth-container">
+      <div className="auth-image-section">
+        <img src={authImage} alt="Authentication" className="auth-image" />
+      </div>
       <div className="auth-wrapper">
         <div className="auth-tabs">
           <button
