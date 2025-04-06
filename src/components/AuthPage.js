@@ -48,6 +48,7 @@ const AuthPage = () => {
       timer = setInterval(() => {
         setOtpTimer((prev) => prev - 1);
       }, 1000);
+      
     }
     return () => clearInterval(timer);
   }, [isOtpSent, otpTimer, isOtpVerified]);
@@ -56,6 +57,7 @@ const AuthPage = () => {
   useEffect(() => {
     if (otpTimer === 0 && !isOtpVerified) {
       setIsOtpSent(false);
+      setOtpMessage('');
       setErrors({ otp: "OTP has expired. Please request a new one." });
     }
   }, [otpTimer, isOtpVerified]);
