@@ -1,38 +1,42 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { QRCodeSVG } from 'qrcode.react';
-import { useNavigate } from 'react-router-dom';
-import './AuthPage.css';
-import authImage from 'D:/React project/encrypt_decrypt_ui/src/assests/difference-B-T-Encryption-Decryption.jpg'; // Adjust the path if your folder structure is different
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { QRCodeSVG } from "qrcode.react";
+import { useNavigate } from "react-router-dom";
+import "./AuthPage.css";
+import authImage from "../assests/index.jpg"; // Adjust the path if your folder structure is different
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [activeForm, setActiveForm] = useState('login');
-  const [loginForm, setLoginForm] = useState({ email: '', password: '', googleOtp: '' });
+  const [activeForm, setActiveForm] = useState("login");
+  const [loginForm, setLoginForm] = useState({
+    email: "",
+    password: "",
+    googleOtp: "",
+  });
   const [registerForm, setRegisterForm] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
-  const [forgotForm, setForgotForm] = useState({ 
-    email: '', 
-    otp: '', 
-    newPassword: '', 
-    confirmNewPassword: '' 
+  const [forgotForm, setForgotForm] = useState({
+    email: "",
+    otp: "",
+    newPassword: "",
+    confirmNewPassword: "",
   });
-  const [lostAuthForm, setLostAuthForm] = useState({ 
-    email: '', 
-    otp: '' 
+  const [lostAuthForm, setLostAuthForm] = useState({
+    email: "",
+    otp: "",
   });
   const [qrCodeUrl, setQrCodeUrl] = useState(null);
   const [errors, setErrors] = useState({});
   const [otpTimer, setOtpTimer] = useState(120);
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isOtpVerified, setIsOtpVerified] = useState(false);
-  const [otpMessage, setOtpMessage] = useState('');
-  const [referenceKey, setReferenceKey] = useState('');
+  const [otpMessage, setOtpMessage] = useState("");
+  const [referenceKey, setReferenceKey] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
@@ -52,7 +56,7 @@ const AuthPage = () => {
   useEffect(() => {
     if (otpTimer === 0 && !isOtpVerified) {
       setIsOtpSent(false);
-      setErrors({ otp: 'OTP has expired. Please request a new one.' });
+      setErrors({ otp: "OTP has expired. Please request a new one." });
     }
   }, [otpTimer, isOtpVerified]);
 
@@ -68,95 +72,113 @@ const AuthPage = () => {
 
   const validateLogin = () => {
     const newErrors = {};
-    if (!loginForm.email) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(loginForm.email)) newErrors.email = 'Email is invalid';
-    if (!loginForm.password) newErrors.password = 'Password is required';
-    if (!loginForm.googleOtp) newErrors.googleOtp = 'Google Authenticator OTP is required';
-    else if (!/^\d{6}$/.test(loginForm.googleOtp)) newErrors.googleOtp = 'OTP must be a 6-digit number';
+    if (!loginForm.email) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(loginForm.email))
+      newErrors.email = "Email is invalid";
+    if (!loginForm.password) newErrors.password = "Password is required";
+    if (!loginForm.googleOtp)
+      newErrors.googleOtp = "Google Authenticator OTP is required";
+    else if (!/^\d{6}$/.test(loginForm.googleOtp))
+      newErrors.googleOtp = "OTP must be a 6-digit number";
     return newErrors;
   };
 
   const validateRegister = () => {
     const newErrors = {};
-    if (!registerForm.firstName) newErrors.firstName = 'First name is required';
-    if (!registerForm.lastName) newErrors.lastName = 'Last name is required';
-    if (!registerForm.email) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(registerForm.email)) newErrors.email = 'Email is invalid';
-    
+    if (!registerForm.firstName) newErrors.firstName = "First name is required";
+    if (!registerForm.lastName) newErrors.lastName = "Last name is required";
+    if (!registerForm.email) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(registerForm.email))
+      newErrors.email = "Email is invalid";
+
     if (!registerForm.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     } else {
       if (registerForm.password.length < 8) {
-        newErrors.password = 'Password must be at least 8 characters';
-      } else if (!/(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])/.test(registerForm.password)) {
-        newErrors.password = 'Password must include uppercase, lowercase, number, and special character';
+        newErrors.password = "Password must be at least 8 characters";
+      } else if (
+        !/(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])/.test(
+          registerForm.password
+        )
+      ) {
+        newErrors.password =
+          "Password must include uppercase, lowercase, number, and special character";
       }
     }
-    
-    if (registerForm.password !== registerForm.confirmPassword) 
-      newErrors.confirmPassword = 'Passwords do not match';
-    
+
+    if (registerForm.password !== registerForm.confirmPassword)
+      newErrors.confirmPassword = "Passwords do not match";
+
     return newErrors;
   };
 
   const validateForgot = () => {
     const newErrors = {};
-    if (!forgotForm.email) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(forgotForm.email)) newErrors.email = 'Email is invalid';
-    
+    if (!forgotForm.email) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(forgotForm.email))
+      newErrors.email = "Email is invalid";
+
     if (isOtpSent && !isOtpVerified) {
-      if (!forgotForm.otp) newErrors.otp = 'OTP is required';
-      else if (!/^\d{6}$/.test(forgotForm.otp)) newErrors.otp = 'OTP must be a 6-digit number';
+      if (!forgotForm.otp) newErrors.otp = "OTP is required";
+      else if (!/^\d{6}$/.test(forgotForm.otp))
+        newErrors.otp = "OTP must be a 6-digit number";
     }
-    
+
     if (isOtpVerified) {
       if (!forgotForm.newPassword) {
-        newErrors.newPassword = 'New password is required';
+        newErrors.newPassword = "New password is required";
       } else {
         if (forgotForm.newPassword.length < 8) {
-          newErrors.newPassword = 'New password must be at least 8 characters';
-        } else if (!/(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])/.test(forgotForm.newPassword)) {
-          newErrors.newPassword = 'New password must include uppercase, lowercase, number, and special character';
+          newErrors.newPassword = "New password must be at least 8 characters";
+        } else if (
+          !/(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])/.test(
+            forgotForm.newPassword
+          )
+        ) {
+          newErrors.newPassword =
+            "New password must include uppercase, lowercase, number, and special character";
         }
       }
-      
-      if (forgotForm.newPassword !== forgotForm.confirmNewPassword) 
-        newErrors.confirmNewPassword = 'Passwords do not match';
+
+      if (forgotForm.newPassword !== forgotForm.confirmNewPassword)
+        newErrors.confirmNewPassword = "Passwords do not match";
     }
-    
+
     return newErrors;
   };
 
   const validateLostAuth = () => {
     const newErrors = {};
-    if (!lostAuthForm.email) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(lostAuthForm.email)) newErrors.email = 'Email is invalid';
+    if (!lostAuthForm.email) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(lostAuthForm.email))
+      newErrors.email = "Email is invalid";
     if (isOtpSent && !isOtpVerified) {
-      if (!lostAuthForm.otp) newErrors.otp = 'OTP is required';
-      else if (!/^\d{6}$/.test(lostAuthForm.otp)) newErrors.otp = 'OTP must be a 6-digit number';
+      if (!lostAuthForm.otp) newErrors.otp = "OTP is required";
+      else if (!/^\d{6}$/.test(lostAuthForm.otp))
+        newErrors.otp = "OTP must be a 6-digit number";
     }
     return newErrors;
   };
 
   const handleLoginChange = (e) => {
     setLoginForm({ ...loginForm, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: '' });
+    setErrors({ ...errors, [e.target.name]: "" });
   };
 
   const handleRegisterChange = (e) => {
     setRegisterForm({ ...registerForm, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: '' });
+    setErrors({ ...errors, [e.target.name]: "" });
   };
 
   const handleForgotChange = (e) => {
     setForgotForm({ ...forgotForm, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: '' });
+    setErrors({ ...errors, [e.target.name]: "" });
   };
 
   const handleLostAuthChange = (e) => {
     const { name, value } = e.target;
     setLostAuthForm({ ...lostAuthForm, [name]: value });
-    setErrors({ ...errors, [name]: '' });
+    setErrors({ ...errors, [name]: "" });
   };
 
   const handleLoginSubmit = async (e) => {
@@ -169,78 +191,89 @@ const AuthPage = () => {
     const payload = {
       email: loginForm.email,
       password: loginForm.password,
-      otp: loginForm.googleOtp
+      otp: loginForm.googleOtp,
     };
     try {
-      const response = await axios.post('http://localhost:8000/login', payload);
-      console.log('Login successful:', response.data);
+      console.log(new Date().toLocaleString());
+      const response = await axios.post("http://localhost:8000/login", payload);
+      console.log(new Date().toLocaleString());
+      console.log("Login successful:", response.data);
       localStorage.setItem("authenticated", "true");
       localStorage.setItem("email", loginForm.email);
 
-      const email=localStorage.getItem('email');
-      const res = await fetch('http://localhost:8000/webauthn/authenticate/options',{
-        method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-   
-      });
+      const email = localStorage.getItem("email");
+      console.log(new Date().toLocaleString());
+      const res = await fetch(
+        "http://localhost:8000/webauthn/authenticate/options",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: email }),
+        }
+      );
 
       const options = await res.json();
       console.log(options);
       options.challenge = base64ToArrayBuffer(options.challenge);
       console.log(options);
-      console.log("options.allowCredentials.id : ", options.allowCredentials.id);
+      console.log(
+        "options.allowCredentials.id : ",
+        options.allowCredentials.id
+      );
       options.allowCredentials[0].id = base64ToArrayBuffer(
         options.allowCredentials[0].id
       );
       console.log(options);
+      console.time("WebAuthn Authentication");
+      const credential = await navigator.credentials.get({
+        publicKey: options,
+      });
+      console.timeEnd("WebAuthn Authentication");
+      const clientDataJSON = JSON.parse(
+        new TextDecoder().decode(credential.response.clientDataJSON)
+      );
+      console.log(clientDataJSON);
+      console.log("Client-side challenge:", clientDataJSON.challenge);
 
-      const credential = await navigator.credentials.get({ publicKey: options });
-    const clientDataJSON = JSON.parse(
-      new TextDecoder().decode(credential.response.clientDataJSON)
-    );
-    console.log(clientDataJSON);
-    console.log("Client-side challenge:", clientDataJSON.challenge);
-
-    const credentialData = {
-      id: credential.id,
-      rawId: arrayBufferToBase64(credential.rawId),
-      type: credential.type,
-      response: {
-        authenticatorData: arrayBufferToBase64(
-          credential.response.authenticatorData
-        ),
-        clientDataJSON: arrayBufferToBase64(credential.response.clientDataJSON),
-        signature: arrayBufferToBase64(credential.response.signature),
-        userHandle: credential.response.userHandle
-          ? arrayBufferToBase64(credential.response.userHandle)
-          : null,
-      },
-    };
-
-    const verifyRes = await fetch('http://localhost:8000/webauthn/authenticate/verify', {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        credential: credentialData,
-        email,
-        challenge: clientDataJSON.challenge,
-      }),
-    });
-
-    if (verifyRes.ok){
-      navigate('/home');
-
-    } else {
-      setMessage("Authentication failed.");
-    }
-
-
-
-      
+      const credentialData = {
+        id: credential.id,
+        rawId: arrayBufferToBase64(credential.rawId),
+        type: credential.type,
+        response: {
+          authenticatorData: arrayBufferToBase64(
+            credential.response.authenticatorData
+          ),
+          clientDataJSON: arrayBufferToBase64(
+            credential.response.clientDataJSON
+          ),
+          signature: arrayBufferToBase64(credential.response.signature),
+          userHandle: credential.response.userHandle
+            ? arrayBufferToBase64(credential.response.userHandle)
+            : null,
+        },
+      };
+      console.log(new Date().toLocaleString());
+      const verifyRes = await fetch(
+        "http://localhost:8000/webauthn/authenticate/verify",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            credential: credentialData,
+            username: email,
+            challenge: clientDataJSON.challenge,
+          }),
+        }
+      );
+      console.log(new Date().toLocaleString());
+      if (verifyRes.ok) {
+        navigate("/home");
+      } else {
+        setMessage("Authentication failed.");
+      }
     } catch (error) {
-      console.error('Login error:', error.response);
-      setErrors({ server: error.response?.data?.detail || 'Login failed' });
+      console.error("Login error:", error.response);
+      setErrors({ server: error.response?.data?.detail || "Login failed" });
     }
   };
 
@@ -275,22 +308,26 @@ const AuthPage = () => {
       first_name: userData.firstName,
       last_name: userData.lastName,
       email: userData.email,
-      password: userData.password
+      password: userData.password,
     };
 
-
-  
     try {
-      const registerResponse = await axios.post('http://localhost:8000/add_user', payload);
-      console.log('Registration successful:', registerResponse.data);
+      const registerResponse = await axios.post(
+        "http://localhost:8000/add_user",
+        payload
+      );
+      console.log("Registration successful:", registerResponse.data);
 
-      const res=await fetch('http://localhost:8000/webauthn/register/options',{
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({email:userData.email}),
-      });
+      const res = await fetch(
+        "http://localhost:8000/webauthn/register/options",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: userData.email }),
+        }
+      );
 
-      const options=await res.json();
+      const options = await res.json();
       options.challenge = base64ToArrayBuffer(options.challenge);
       options.user.id = base64ToArrayBuffer(options.user.id);
 
@@ -302,83 +339,106 @@ const AuthPage = () => {
 
       console.log(credential);
       const clientDataJSON = JSON.parse(
-      new TextDecoder().decode(credential.response.clientDataJSON)
-    );
-    console.log(clientDataJSON);
-    console.log("Client-side challenge:", clientDataJSON.challenge);
-    const credentialData = {
-      id: credential.id,
-      rawId: arrayBufferToBase64(credential.rawId),
-      type: credential.type,
-      response: {
-        attestationObject: arrayBufferToBase64(
-          credential.response.attestationObject
-        ),
-        clientDataJSON: arrayBufferToBase64(credential.response.clientDataJSON),
-      },
-    };
-    console.log(credentialData);
+        new TextDecoder().decode(credential.response.clientDataJSON)
+      );
+      console.log(clientDataJSON);
+      console.log("Client-side challenge:", clientDataJSON.challenge);
+      const credentialData = {
+        id: credential.id,
+        rawId: arrayBufferToBase64(credential.rawId),
+        type: credential.type,
+        response: {
+          attestationObject: arrayBufferToBase64(
+            credential.response.attestationObject
+          ),
+          clientDataJSON: arrayBufferToBase64(
+            credential.response.clientDataJSON
+          ),
+        },
+      };
+      console.log(credentialData);
 
-    const verifyRes = await fetch('http://localhost:8000/webauthn/register/verify',{
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        credential: credentialData,
-        email:userData.email,
-        challenge: clientDataJSON.challenge,
-      }),
-    });
-    
-    if (verifyRes.ok) {
-      const qrResponse = await axios.post('http://localhost:8000/generate_qr', {
-        email: userData.email
-      });
-      console.log('QR Response:', qrResponse.data);
+      const verifyRes = await fetch(
+        "http://localhost:8000/webauthn/register/verify",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            credential: credentialData,
+            username: userData.email,
+            challenge: clientDataJSON.challenge,
+          }),
+        }
+      );
 
-      const qrUrl = qrResponse.data.qr_url;
-      if (qrUrl) {
-        setQrCodeUrl(qrUrl);
-        setActiveForm('qr-scan');
-        localStorage.setItem("authenticated", "false");
-        setLoginForm({ ...loginForm, email: userData.email });
+      if (verifyRes.ok) {
+        const qrResponse = await axios.post(
+          "http://localhost:8000/generate_qr",
+          {
+            email: userData.email,
+          }
+        );
+        console.log("QR Response:", qrResponse.data);
+        const qrUrl = qrResponse.data.qr_url;
+        if (qrUrl) {
+          setQrCodeUrl(qrUrl);
+          setActiveForm("qr-scan");
+          localStorage.setItem("authenticated", "false");
+          setLoginForm({ ...loginForm, email: userData.email });
+        } else {
+          console.log("QR code URL not found in response:", qrResponse.data);
+          setErrors({
+            server: "QR code generation failed - No QR URL in response",
+          });
+          setActiveForm("login");
+        }
       } else {
-        console.log('QR code URL not found in response:', qrResponse.data);
-        setErrors({ server: 'QR code generation failed - No QR URL in response' });
-        setActiveForm('login');
+        setMessage("Authentication failed.");
       }
-    } else {
-      setMessage("Authentication failed.");
-    }
-  
- 
 
-      const qrResponse = await axios.post('http://localhost:8000/generate_qr', {
-        email: userData.email
+      const qrResponse = await axios.post("http://localhost:8000/generate_qr", {
+        email: userData.email,
       });
-      console.log('QR Response:', qrResponse.data);
+      console.log("QR Response:", qrResponse.data);
 
       const qrUrl = qrResponse.data.qr_url;
       if (qrUrl) {
         setQrCodeUrl(qrUrl);
-        setActiveForm('qr-scan');
+        setActiveForm("qr-scan");
         localStorage.setItem("authenticated", "false");
         setLoginForm({ ...loginForm, email: userData.email });
       } else {
-        console.log('QR code URL not found in response:', qrResponse.data);
-        setErrors({ server: 'QR code generation failed - No QR URL in response' });
-        setActiveForm('login');
+        console.log("QR code URL not found in response:", qrResponse.data);
+        setErrors({
+          server: "QR code generation failed - No QR URL in response",
+        });
+        setActiveForm("login");
       }
 
       setRegisterForm({
-        firstName: '',
-        lastName: '',
-        email: '',
-        password: '',
-        confirmPassword: ''
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
       });
     } catch (error) {
-      console.error('Error:', error.response);
-      setErrors({ server: error.response?.data?.detail || 'Registration or QR code generation failed' });
+      console.error("Error:", error.response);
+
+      // Handle specific "Email already registered" case
+      if (error.response?.data?.detail === "Email already registered") {
+        setErrors({
+          server: "This email is already registered",
+        });
+      }
+      // Handle other error cases
+      else {
+        setErrors({
+          server:
+            error.response?.data?.detail ||
+            "Registration or QR code generation failed. Please try again.",
+        });
+      }
     }
   };
 
@@ -392,50 +452,72 @@ const AuthPage = () => {
 
     if (!isOtpSent) {
       try {
-        const response = await axios.post('http://localhost:8000/generate_otp', {
-          email: forgotForm.email
-        });
-        console.log('OTP sent:', response.data);
+        const response = await axios.post(
+          "http://localhost:8000/generate_otp",
+          {
+            email: forgotForm.email,
+          }
+        );
+        console.log("OTP sent:", response.data);
         const refKey = response.data.reference_key;
         setReferenceKey(refKey);
         setIsOtpSent(true);
         setOtpTimer(120);
         setOtpMessage(`Enter OTP with this reference key: ${refKey}`);
       } catch (error) {
-        setErrors({ server: error.response?.data?.message || 'Failed to send OTP' });
+        setErrors({
+          server: error.response?.data?.message || "Failed to send OTP",
+        });
       }
     } else if (isOtpSent && !isOtpVerified) {
       try {
         setIsVerifying(true);
-        const response = await axios.post('http://localhost:8000/verify_otp_fp', {
-          email: forgotForm.email,
-          otp: forgotForm.otp,
-          reference_key: referenceKey
-        });
-        console.log('OTP verified:', response.data);
+        const response = await axios.post(
+          "http://localhost:8000/verify_otp_fp",
+          {
+            email: forgotForm.email,
+            otp: forgotForm.otp,
+            reference_key: referenceKey,
+          }
+        );
+        console.log("OTP verified:", response.data);
         setIsOtpVerified(true);
-        setOtpMessage('OTP verified successfully. Please enter your new password.');
+        setOtpMessage(
+          "OTP verified successfully. Please enter your new password."
+        );
         setErrors({});
       } catch (error) {
-        setErrors({ server: error.response?.data?.message || 'Invalid OTP' });
+        setErrors({ server: error.response?.data?.message || "Invalid OTP" });
       } finally {
         setIsVerifying(false);
       }
     } else if (isOtpVerified) {
       try {
-        const response = await axios.post('http://localhost:8000/update_password', {
-          email: forgotForm.email,
-          new_password: forgotForm.newPassword
-        });
-        console.log('Password reset successful:', response.data);
-        setOtpMessage('Password reset successfully. Please log in with your new password.');
-        setActiveForm('login');
+        const response = await axios.post(
+          "http://localhost:8000/update_password",
+          {
+            email: forgotForm.email,
+            new_password: forgotForm.newPassword,
+          }
+        );
+        console.log("Password reset successful:", response.data);
+        setOtpMessage(
+          "Password reset successfully. Please log in with your new password."
+        );
+        setActiveForm("login");
         setIsOtpSent(false);
         setIsOtpVerified(false);
-        setForgotForm({ email: '', otp: '', newPassword: '', confirmNewPassword: '' });
-        setReferenceKey('');
+        setForgotForm({
+          email: "",
+          otp: "",
+          newPassword: "",
+          confirmNewPassword: "",
+        });
+        setReferenceKey("");
       } catch (error) {
-        setErrors({ server: error.response?.data?.message || 'Failed to reset password' });
+        setErrors({
+          server: error.response?.data?.message || "Failed to reset password",
+        });
       }
     }
   };
@@ -450,10 +532,13 @@ const AuthPage = () => {
 
     if (!isOtpSent) {
       try {
-        const response = await axios.post('http://localhost:8000/generate_otp', {
-          email: lostAuthForm.email
-        });
-        console.log('OTP sent:', response.data);
+        const response = await axios.post(
+          "http://localhost:8000/generate_otp",
+          {
+            email: lostAuthForm.email,
+          }
+        );
+        console.log("OTP sent:", response.data);
         const refKey = response.data.reference_key;
         setReferenceKey(refKey);
         setIsOtpSent(true);
@@ -461,28 +546,33 @@ const AuthPage = () => {
         setOtpMessage(`Enter OTP with this reference key: ${refKey}`);
         setErrors({});
       } catch (error) {
-        setErrors({ server: error.response?.data?.message || 'Failed to send OTP' });
+        setErrors({
+          server: error.response?.data?.message || "Failed to send OTP",
+        });
       }
     } else if (isOtpSent && !isOtpVerified) {
       try {
         setIsVerifying(true);
-        const response = await axios.post('http://localhost:8000/verify_otp_qr', {
-          email: lostAuthForm.email,
-          otp: lostAuthForm.otp,
-          reference_key: referenceKey
-        });
-        console.log('OTP verified:', response.data);
+        const response = await axios.post(
+          "http://localhost:8000/verify_otp_qr",
+          {
+            email: lostAuthForm.email,
+            otp: lostAuthForm.otp,
+            reference_key: referenceKey,
+          }
+        );
+        console.log("OTP verified:", response.data);
         const qrUrl = response.data.qr_url;
         if (qrUrl) {
           setQrCodeUrl(qrUrl);
           setIsOtpVerified(true);
-          setOtpMessage('Scan the QR code to reset your authenticator.');
+          setOtpMessage("Scan the QR code to reset your authenticator.");
           setErrors({});
         } else {
-          setErrors({ server: 'QR code URL not found in response' });
+          setErrors({ server: "QR code URL not found in response" });
         }
       } catch (error) {
-        setErrors({ server: error.response?.data?.message || 'Invalid OTP' });
+        setErrors({ server: error.response?.data?.message || "Invalid OTP" });
       } finally {
         setIsVerifying(false);
       }
@@ -491,37 +581,35 @@ const AuthPage = () => {
 
   const handleSwitch = (login) => {
     setIsLogin(login);
-    setActiveForm(login ? 'login' : 'register');
+    setActiveForm(login ? "login" : "register");
     setErrors({});
   };
 
   const handleForgotPassword = () => {
-    setActiveForm('forgot');
+    setActiveForm("forgot");
     setIsLogin(true);
     setErrors({});
     setIsOtpSent(false);
     setIsOtpVerified(false);
     setOtpTimer(120);
-    setOtpMessage('');
-    setReferenceKey('');
+    setOtpMessage("");
+    setReferenceKey("");
   };
 
   const handleLostAuthenticator = () => {
-    setActiveForm('lost-auth');
+    setActiveForm("lost-auth");
     setIsLogin(true);
     setErrors({});
     setIsOtpSent(false);
     setIsOtpVerified(false);
     setOtpTimer(120);
-    setOtpMessage('');
-    setReferenceKey('');
+    setOtpMessage("");
+    setReferenceKey("");
     setQrCodeUrl(null);
     setIsVerifying(false);
   };
 
   return (
-
-    
     <div className="auth-container">
       <div className="auth-image-section">
         <img src={authImage} alt="Authentication" className="auth-image" />
@@ -529,13 +617,15 @@ const AuthPage = () => {
       <div className="auth-wrapper">
         <div className="auth-tabs">
           <button
-            className={`tab-button ${isLogin ? 'active' : ''}`}
+            className={`tab-button ${isLogin ? "active" : ""}`}
             onClick={() => handleSwitch(true)}
           >
             Login
           </button>
           <button
-            className={`tab-button ${!isLogin && activeForm === 'register' ? 'active' : ''}`}
+            className={`tab-button ${
+              !isLogin && activeForm === "register" ? "active" : ""
+            }`}
             onClick={() => handleSwitch(false)}
           >
             Register
@@ -543,13 +633,21 @@ const AuthPage = () => {
         </div>
 
         <div className="forms-container">
-          <div className={`forms-slider ${
-            activeForm === 'login' ? 'slide-login' :
-            activeForm === 'register' ? 'slide-register' :
-            activeForm === 'forgot' ? 'slide-forgot' :
-            activeForm === 'lost-auth' ? 'slide-lost-auth' :
-            activeForm === 'qr-scan' ? 'slide-qr-scan' : ''
-          }`}>
+          <div
+            className={`forms-slider ${
+              activeForm === "login"
+                ? "slide-login"
+                : activeForm === "register"
+                ? "slide-register"
+                : activeForm === "forgot"
+                ? "slide-forgot"
+                : activeForm === "lost-auth"
+                ? "slide-lost-auth"
+                : activeForm === "qr-scan"
+                ? "slide-qr-scan"
+                : ""
+            }`}
+          >
             <div className="form login-form">
               <form onSubmit={handleLoginSubmit}>
                 <div className="input-group">
@@ -572,7 +670,9 @@ const AuthPage = () => {
                     value={loginForm.password}
                     onChange={handleLoginChange}
                   />
-                  {errors.password && <p className="error">{errors.password}</p>}
+                  {errors.password && (
+                    <p className="error">{errors.password}</p>
+                  )}
                 </div>
                 <div className="input-group">
                   <input
@@ -583,15 +683,23 @@ const AuthPage = () => {
                     value={loginForm.googleOtp}
                     onChange={handleLoginChange}
                   />
-                  {errors.googleOtp && <p className="error">{errors.googleOtp}</p>}
+                  {errors.googleOtp && (
+                    <p className="error">{errors.googleOtp}</p>
+                  )}
                 </div>
-                {errors.server && <p className="error server-error">{errors.server}</p>}
-                <button type="submit" className="auth-button">Login</button>
+                {errors.server && (
+                  <p className="error server-error">{errors.server}</p>
+                )}
+                <button type="submit" className="auth-button">
+                  Login
+                </button>
                 <p className="forgot-link">
                   <span onClick={handleForgotPassword}>Forgot Password?</span>
                 </p>
                 <p className="lost-auth-link">
-                  <span onClick={handleLostAuthenticator}>Lost Google Authenticator?</span>
+                  <span onClick={handleLostAuthenticator}>
+                    Lost Google Authenticator?
+                  </span>
                 </p>
               </form>
             </div>
@@ -606,7 +714,9 @@ const AuthPage = () => {
                     value={registerForm.firstName}
                     onChange={handleRegisterChange}
                   />
-                  {errors.firstName && <p className="error">{errors.firstName}</p>}
+                  {errors.firstName && (
+                    <p className="error">{errors.firstName}</p>
+                  )}
                 </div>
                 <div className="input-group">
                   <input
@@ -616,7 +726,9 @@ const AuthPage = () => {
                     value={registerForm.lastName}
                     onChange={handleRegisterChange}
                   />
-                  {errors.lastName && <p className="error">{errors.lastName}</p>}
+                  {errors.lastName && (
+                    <p className="error">{errors.lastName}</p>
+                  )}
                 </div>
                 <div className="input-group">
                   <input
@@ -636,7 +748,9 @@ const AuthPage = () => {
                     value={registerForm.password}
                     onChange={handleRegisterChange}
                   />
-                  {errors.password && <p className="error">{errors.password}</p>}
+                  {errors.password && (
+                    <p className="error">{errors.password}</p>
+                  )}
                 </div>
                 <div className="input-group">
                   <input
@@ -646,11 +760,17 @@ const AuthPage = () => {
                     value={registerForm.confirmPassword}
                     onChange={handleRegisterChange}
                   />
-                  {errors.confirmPassword && <p className="error">{errors.confirmPassword}</p>}
+                  {errors.confirmPassword && (
+                    <p className="error">{errors.confirmPassword}</p>
+                  )}
                 </div>
-                {errors.server && <p className="error server-error">{errors.server}</p>}
+                {errors.server && (
+                  <p className="error server-error">{errors.server}</p>
+                )}
                 <p>{message}</p>
-                <button type="submit" className="auth-button">Register</button>
+                <button type="submit" className="auth-button">
+                  Register
+                </button>
               </form>
             </div>
 
@@ -692,7 +812,9 @@ const AuthPage = () => {
                         value={forgotForm.newPassword}
                         onChange={handleForgotChange}
                       />
-                      {errors.newPassword && <p className="error">{errors.newPassword}</p>}
+                      {errors.newPassword && (
+                        <p className="error">{errors.newPassword}</p>
+                      )}
                     </div>
                     <div className="input-group">
                       <input
@@ -702,24 +824,36 @@ const AuthPage = () => {
                         value={forgotForm.confirmNewPassword}
                         onChange={handleForgotChange}
                       />
-                      {errors.confirmNewPassword && <p className="error">{errors.confirmNewPassword}</p>}
+                      {errors.confirmNewPassword && (
+                        <p className="error">{errors.confirmNewPassword}</p>
+                      )}
                     </div>
                   </>
                 )}
                 {otpMessage && <p className="otp-message">{otpMessage}</p>}
-                {errors.server && <p className="error server-error">{errors.server}</p>}
+                {errors.server && (
+                  <p className="error server-error">{errors.server}</p>
+                )}
                 {!isVerifying && (
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="auth-button"
                     disabled={isOtpSent && !isOtpVerified && otpTimer === 0}
                   >
-                    {!isOtpSent ? 'Send OTP' : !isOtpVerified ? 'Verify OTP' : 'Reset Password'}
+                    {!isOtpSent
+                      ? "Send OTP"
+                      : !isOtpVerified
+                      ? "Verify OTP"
+                      : "Reset Password"}
                   </button>
                 )}
-                {isVerifying && <p className="verifying-message">Verifying OTP...</p>}
+                {isVerifying && (
+                  <p className="verifying-message">Verifying OTP...</p>
+                )}
                 <p className="back-link">
-                  <span onClick={() => setActiveForm('login')}>Back to Login</span>
+                  <span onClick={() => setActiveForm("login")}>
+                    Back to Login
+                  </span>
                 </p>
               </form>
             </div>
@@ -759,19 +893,25 @@ const AuthPage = () => {
                   </div>
                 )}
                 {otpMessage && <p className="otp-message">{otpMessage}</p>}
-                {errors.server && <p className="error server-error">{errors.server}</p>}
+                {errors.server && (
+                  <p className="error server-error">{errors.server}</p>
+                )}
                 {!isVerifying && !isOtpVerified && (
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="auth-button"
                     disabled={isOtpSent && !isOtpVerified && otpTimer === 0}
                   >
-                    {!isOtpSent ? 'Send OTP' : 'Verify OTP'}
+                    {!isOtpSent ? "Send OTP" : "Verify OTP"}
                   </button>
                 )}
-                {isVerifying && <p className="verifying-message">Verifying OTP...</p>}
+                {isVerifying && (
+                  <p className="verifying-message">Verifying OTP...</p>
+                )}
                 <p className="back-link">
-                  <span onClick={() => setActiveForm('login')}>Back to Login</span>
+                  <span onClick={() => setActiveForm("login")}>
+                    Back to Login
+                  </span>
                 </p>
               </form>
             </div>
@@ -788,7 +928,7 @@ const AuthPage = () => {
               )}
               <button
                 className="auth-button"
-                onClick={() => setActiveForm('login')}
+                onClick={() => setActiveForm("login")}
               >
                 Proceed to Login
               </button>

@@ -1,20 +1,13 @@
 /* Container for the entire auth page */
-.auth-container {
-  display: flex;
-  justify-content: flex-end; /* Align to the right */
-  align-items: center;
-  min-height: 100vh;
-  background: #f0f2f5;
-  padding-right: 250px;
+
+.auth-image-section{
+  padding-right: 80px;
 }
-.auth-image {
-  display: flex;
-  justify-content: flex-start;
-  width: 700px; /* Set the desired width */
-  height: 500px; /* Set the desired height */
-  object-fit: cover; /* Ensure the image covers the area without distortion */
+.auth-image {  
+  width: 100%; /* Adjusts to parent container */
+  max-width: 700px; /* Prevents it from becoming too large */
+  height: auto; /* Maintains aspect ratio */
   border-radius: 50px;
-  
   
 }
 .auth-container {
