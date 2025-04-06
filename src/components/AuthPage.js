@@ -579,9 +579,28 @@ const AuthPage = () => {
     }
   };
 
+  const resetAllForms = () => {
+    setLoginForm({ email: "", password: "", googleOtp: "" });
+    setRegisterForm({ 
+      firstName: "", 
+      lastName: "", 
+      email: "", 
+      password: "", 
+      confirmPassword: "" 
+    });
+    setForgotForm({ 
+      email: "", 
+      otp: "", 
+      newPassword: "", 
+      confirmNewPassword: "" 
+    });
+    setLostAuthForm({ email: "", otp: "" });
+  };
+
   const handleSwitch = (login) => {
     setIsLogin(login);
     setActiveForm(login ? "login" : "register");
+    resetAllForms();
     setErrors({});
   };
 
@@ -594,6 +613,7 @@ const AuthPage = () => {
     setOtpTimer(120);
     setOtpMessage("");
     setReferenceKey("");
+    resetAllForms();
   };
 
   const handleLostAuthenticator = () => {
@@ -607,6 +627,7 @@ const AuthPage = () => {
     setReferenceKey("");
     setQrCodeUrl(null);
     setIsVerifying(false);
+    resetAllForms();
   };
 
   return (
