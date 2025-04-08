@@ -3,10 +3,12 @@ import axios from "axios";
 import { QRCodeSVG } from "qrcode.react";
 import { useNavigate } from "react-router-dom";
 import "./AuthPage.css";
+import LoadingPage from "../common/LoadingPage";
 import authImage from "../assests/index.jpg"; // Adjust the path if your folder structure is different
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [activeForm, setActiveForm] = useState("login");
   const [loginForm, setLoginForm] = useState({
     email: "",
@@ -195,6 +197,7 @@ const AuthPage = () => {
       password: loginForm.password,
       otp: loginForm.googleOtp,
     };
+    setLoading(true);
     try {
       console.log(new Date().toLocaleString());
       const response = await axios.post("http://localhost:8000/login", payload);
@@ -277,6 +280,7 @@ const AuthPage = () => {
       console.error("Login error:", error.response);
       setErrors({ server: error.response?.data?.detail || "Login failed" });
     }
+    setLoading(false);
   };
 
   // Convert Base64URL to ArrayBuffer
@@ -312,8 +316,9 @@ const AuthPage = () => {
       email: userData.email,
       password: userData.password,
     };
-
+    
     try {
+      setLoading(true);
       const registerResponse = await axios.post(
         "http://localhost:8000/add_user",
         payload
@@ -382,6 +387,7 @@ const AuthPage = () => {
         );
         console.log("QR Response:", qrResponse.data);
         const qrUrl = qrResponse.data.qr_url;
+        setLoading(false);
         if (qrUrl) {
           setQrCodeUrl(qrUrl);
           setActiveForm("qr-scan");
@@ -454,12 +460,14 @@ const AuthPage = () => {
 
     if (!isOtpSent) {
       try {
+        setLoading(true);
         const response = await axios.post(
           "http://localhost:8000/generate_otp",
           {
             email: forgotForm.email,
           }
         );
+        setLoading(false);
         console.log("OTP sent:", response.data);
         const refKey = response.data.reference_key;
         setReferenceKey(refKey);
@@ -474,6 +482,7 @@ const AuthPage = () => {
     } else if (isOtpSent && !isOtpVerified) {
       try {
         setIsVerifying(true);
+        
         const response = await axios.post(
           "http://localhost:8000/verify_otp_fp",
           {
@@ -495,6 +504,7 @@ const AuthPage = () => {
       }
     } else if (isOtpVerified) {
       try {
+        setLoading(true);
         const response = await axios.post(
           "http://localhost:8000/update_password",
           {
@@ -502,6 +512,7 @@ const AuthPage = () => {
             new_password: forgotForm.newPassword,
           }
         );
+        setLoading(false);
         console.log("Password reset successful:", response.data);
         setOtpMessage(
           "Password reset successfully. Please log in with your new password."
@@ -534,12 +545,14 @@ const AuthPage = () => {
 
     if (!isOtpSent) {
       try {
+        setLoading(true);
         const response = await axios.post(
           "http://localhost:8000/generate_otp",
           {
             email: lostAuthForm.email,
           }
         );
+        setLoading(false);
         console.log("OTP sent:", response.data);
         const refKey = response.data.reference_key;
         setReferenceKey(refKey);
@@ -634,6 +647,8 @@ const AuthPage = () => {
 
   return (
     <div className="auth-container">
+      {loading && <LoadingPage />}
+
       <div className="auth-image-section">
         <img src={authImage} alt="Authentication" className="auth-image" />
       </div>

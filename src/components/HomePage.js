@@ -3,11 +3,13 @@ import axios from "axios";
 import { FaUpload, FaSignOutAlt, FaCopy } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "./HomePage.css";
+import LoadingPage from "../common/LoadingPage";
 
 const HomePage = () => {
   const [text, setText] = useState("");
   const [file, setFile] = useState(null);
   const [textResult, setTextResult] = useState("");
+  const [loading, setLoading] = useState(false);
   const [fileResult, setFileResult] = useState(null);
   const [textError, setTextError] = useState("");
   const [fileError, setFileError] = useState("");
@@ -36,7 +38,7 @@ const HomePage = () => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("email", email);
-
+    setLoading(true)
     try {
       const response = await axios.post(
         "http://localhost:8000/encrypt",
@@ -62,6 +64,7 @@ const HomePage = () => {
     } catch (err) {
       setFileError(err.response?.data?.detail || "File encryption failed.");
     }
+    setLoading(false)
   };
 
   useEffect(() => {
@@ -92,7 +95,7 @@ const HomePage = () => {
 
     const formData = new FormData();
     formData.append("file", file);
-
+    setLoading(true)
     try {
       const response = await axios.post(
         "http://localhost:8000/decrypt",
@@ -124,6 +127,7 @@ const HomePage = () => {
     } catch (err) {
       setFileError(err.response?.data?.detail || "File decryption failed.");
     }
+    setLoading(false)
   };
 
   const downloadFile = () => {
@@ -149,7 +153,7 @@ const HomePage = () => {
       setTextError("No email found in local storage.");
       return;
     }
-
+    setLoading(true)
     try {
       const response = await axios.post("http://localhost:8000/encrypt_text", {
         email,
@@ -162,6 +166,7 @@ const HomePage = () => {
     } catch (err) {
       setTextError(err.response?.data?.detail || "Text encryption failed.");
     }
+    setLoading(false)
   };
 
   const decryptText = async () => {
@@ -169,7 +174,7 @@ const HomePage = () => {
       setTextError("Please enter text to decrypt.");
       return;
     }
-
+    setLoading(true)
     try {
       const response = await axios.post("http://localhost:8000/decrypt_text", {
         encrypted_text: text,
@@ -181,6 +186,7 @@ const HomePage = () => {
     } catch (err) {
       setTextError(err.response?.data?.detail || "Text decryption failed.");
     }
+    setLoading(false)
   };
 
   // Function to copy text to clipboard
@@ -196,6 +202,7 @@ const HomePage = () => {
 
   return (
     <div className="home-container">
+      {loading && <LoadingPage />}.
       <header className="header">
         <h1>Welcome {userName || "User"} to Encrypt and Decrypt WebApp</h1>
         <button className="logout-button" onClick={handleLogout} title="Logout">
