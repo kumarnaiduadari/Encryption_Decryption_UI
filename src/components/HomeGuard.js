@@ -1,35 +1,53 @@
-import React from "react";
-import {Navigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Navigate } from "react-router-dom";
 import HomePage from "./HomePage";
-
-import { useEffect } from 'react';
+import axios from "axios";
+import LoadingPage from "../common/LoadingPage";
 
 function HomeGuard() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-    
-useEffect(() => {
+  // Session validation effect
+  useEffect(() => {
+    const validateSession = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:8000/validate_session",
+          { withCredentials: true } // Send cookies automatically
+        );
+
+        setIsAuthenticated(response.data.authenticated);
+      } catch (error) {
+        console.error("Session validation error:", error);
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    validateSession();
+  }, []);
+
+  // Back button prevention effect (keep existing)
+  useEffect(() => {
     const preventBack = () => {
       window.history.pushState(null, "", window.location.href);
     };
-  
+
     preventBack();
     window.addEventListener("popstate", preventBack);
-  
+
     return () => {
       window.removeEventListener("popstate", preventBack);
     };
   }, []);
 
-  
-    const isAuthenticated = localStorage.getItem("authenticated");
-    console.log("status:" + isAuthenticated);
-  
-    if (isAuthenticated === "true") {
-      return <HomePage />;
-    } else {
-      return <Navigate to="/" />;
-    }
+  if (loading) {
+    return <LoadingPage />;
   }
-  
-  export default HomeGuard;
-  
+
+  return isAuthenticated ? <HomePage /> : <Navigate to="/" replace />;
+}
+
+export default HomeGuard;

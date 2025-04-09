@@ -50,7 +50,6 @@ const AuthPage = () => {
       timer = setInterval(() => {
         setOtpTimer((prev) => prev - 1);
       }, 1000);
-      
     }
     return () => clearInterval(timer);
   }, [isOtpSent, otpTimer, isOtpVerified]);
@@ -59,7 +58,7 @@ const AuthPage = () => {
   useEffect(() => {
     if (otpTimer === 0 && !isOtpVerified) {
       setIsOtpSent(false);
-      setOtpMessage('');
+      setOtpMessage("");
       setErrors({ otp: "OTP has expired. Please request a new one." });
     }
   }, [otpTimer, isOtpVerified]);
@@ -203,10 +202,8 @@ const AuthPage = () => {
       const response = await axios.post("http://localhost:8000/login", payload);
       console.log(new Date().toLocaleString());
       console.log("Login successful:", response.data);
-      localStorage.setItem("authenticated", "true");
-      localStorage.setItem("email", loginForm.email);
 
-      const email = localStorage.getItem("email");
+      const email = loginForm.email;
       console.log(new Date().toLocaleString());
       const res = await fetch(
         "http://localhost:8000/webauthn/authenticate/options",
@@ -214,31 +211,21 @@ const AuthPage = () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username: email }),
+          credentials: "include",
         }
       );
 
       const options = await res.json();
-      console.log(options);
       options.challenge = base64ToArrayBuffer(options.challenge);
-      console.log(options);
-      console.log(
-        "options.allowCredentials.id : ",
-        options.allowCredentials.id
-      );
       options.allowCredentials[0].id = base64ToArrayBuffer(
         options.allowCredentials[0].id
       );
-      console.log(options);
-      console.time("WebAuthn Authentication");
       const credential = await navigator.credentials.get({
         publicKey: options,
       });
-      console.timeEnd("WebAuthn Authentication");
       const clientDataJSON = JSON.parse(
         new TextDecoder().decode(credential.response.clientDataJSON)
       );
-      console.log(clientDataJSON);
-      console.log("Client-side challenge:", clientDataJSON.challenge);
 
       const credentialData = {
         id: credential.id,
@@ -267,12 +254,33 @@ const AuthPage = () => {
             credential: credentialData,
             username: email,
             challenge: clientDataJSON.challenge,
+            credentials: "include",
           }),
         }
       );
-      console.log(new Date().toLocaleString());
+
       if (verifyRes.ok) {
-        navigate("/home");
+        // Verify session cookie is properly set
+        const authCheck = await axios.get(
+          "http://localhost:8000/validate_session",
+          {
+            withCredentials: true,
+          }
+        );
+
+        if (authCheck.data.authenticated) {
+          navigate("/home");
+        } else {
+          setMessage("Session validation failed after authentication");
+          // Handle failed session validation
+          /* await axios.post(
+            "http://localhost:8000/logout",
+            {},
+            {
+              withCredentials: true,
+            }
+          ); */
+        }
       } else {
         setMessage("Authentication failed.");
       }
@@ -316,7 +324,7 @@ const AuthPage = () => {
       email: userData.email,
       password: userData.password,
     };
-    
+
     try {
       setLoading(true);
       const registerResponse = await axios.post(
@@ -391,7 +399,6 @@ const AuthPage = () => {
         if (qrUrl) {
           setQrCodeUrl(qrUrl);
           setActiveForm("qr-scan");
-          localStorage.setItem("authenticated", "false");
           setLoginForm({ ...loginForm, email: userData.email });
         } else {
           console.log("QR code URL not found in response:", qrResponse.data);
@@ -413,7 +420,6 @@ const AuthPage = () => {
       if (qrUrl) {
         setQrCodeUrl(qrUrl);
         setActiveForm("qr-scan");
-        localStorage.setItem("authenticated", "false");
         setLoginForm({ ...loginForm, email: userData.email });
       } else {
         console.log("QR code URL not found in response:", qrResponse.data);
@@ -482,7 +488,7 @@ const AuthPage = () => {
     } else if (isOtpSent && !isOtpVerified) {
       try {
         setIsVerifying(true);
-        
+
         const response = await axios.post(
           "http://localhost:8000/verify_otp_fp",
           {
@@ -596,18 +602,18 @@ const AuthPage = () => {
 
   const resetAllForms = () => {
     setLoginForm({ email: "", password: "", googleOtp: "" });
-    setRegisterForm({ 
-      firstName: "", 
-      lastName: "", 
-      email: "", 
-      password: "", 
-      confirmPassword: "" 
+    setRegisterForm({
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
     });
-    setForgotForm({ 
-      email: "", 
-      otp: "", 
-      newPassword: "", 
-      confirmNewPassword: "" 
+    setForgotForm({
+      email: "",
+      otp: "",
+      newPassword: "",
+      confirmNewPassword: "",
     });
     setLostAuthForm({ email: "", otp: "" });
   };

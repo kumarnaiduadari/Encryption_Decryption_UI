@@ -17,9 +17,45 @@ const HomePage = () => {
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
   const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
 
-  const email = localStorage.getItem("email");
+  useEffect(() => {
+    const fetchUserEmail = async () => {
+      try {
+        const response = await axios.get("/current_user");
+        setUserEmail(response.data.email);
+        console.log("Email id for current user : ", response.data.email);
+      } catch (error) {
+        console.error("Error fetching user email:", error);
+        // Handle unauthorized access
+        if (error.response?.status === 401) {
+          window.location.href = "/";
+        }
+      }
+    };
 
+    fetchUserEmail();
+  }, []);
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      try {
+        console.log("Email for full name :", userEmail);
+        if (userEmail) {
+          const response = await axios.post(
+            "http://localhost:8000/get_user_full_name",
+            { email: userEmail } // Send as request body
+          );
+          setUserName(response.data.full_name || "User");
+        }
+      } catch (error) {
+        console.error("Couldn't fetch user name:", error);
+        setUserName("User");
+      }
+    };
+
+    fetchUserName();
+  }, [userEmail]);
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
     setFileResult(null);
@@ -30,15 +66,15 @@ const HomePage = () => {
       setFileError("Please select a file first.");
       return;
     }
-    if (!email) {
-      setFileError("No email found in local storage.");
+    if (!userEmail) {
+      setFileError("No email found.");
       return;
     }
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("email", email);
-    setLoading(true)
+    formData.append("email", userEmail);
+    setLoading(true);
     try {
       const response = await axios.post(
         "http://localhost:8000/encrypt",
@@ -64,28 +100,8 @@ const HomePage = () => {
     } catch (err) {
       setFileError(err.response?.data?.detail || "File encryption failed.");
     }
-    setLoading(false)
+    setLoading(false);
   };
-
-  useEffect(() => {
-    const fetchUserName = async () => {
-      try {
-        const email = localStorage.getItem("email");
-        if (email) {
-          const response = await axios.post(
-            "http://localhost:8000/get_user_full_name",
-            { email } // Send as request body
-          );
-          setUserName(response.data.full_name || "User");
-        }
-      } catch (error) {
-        console.error("Couldn't fetch user name:", error);
-        setUserName("User");
-      }
-    };
-
-    fetchUserName();
-  }, []);
 
   const decryptFile = async () => {
     if (!file) {
@@ -95,7 +111,7 @@ const HomePage = () => {
 
     const formData = new FormData();
     formData.append("file", file);
-    setLoading(true)
+    setLoading(true);
     try {
       const response = await axios.post(
         "http://localhost:8000/decrypt",
@@ -127,7 +143,7 @@ const HomePage = () => {
     } catch (err) {
       setFileError(err.response?.data?.detail || "File decryption failed.");
     }
-    setLoading(false)
+    setLoading(false);
   };
 
   const downloadFile = () => {
@@ -149,14 +165,14 @@ const HomePage = () => {
       setTextError("Please enter text to encrypt.");
       return;
     }
-    if (!email) {
-      setTextError("No email found in local storage.");
+    if (!userEmail) {
+      setTextError("No email found.");
       return;
     }
-    setLoading(true)
+    setLoading(true);
     try {
       const response = await axios.post("http://localhost:8000/encrypt_text", {
-        email,
+        email: userEmail,
         text,
       });
       setTextResult(response.data.encrypted_text);
@@ -166,7 +182,7 @@ const HomePage = () => {
     } catch (err) {
       setTextError(err.response?.data?.detail || "Text encryption failed.");
     }
-    setLoading(false)
+    setLoading(false);
   };
 
   const decryptText = async () => {
@@ -174,7 +190,7 @@ const HomePage = () => {
       setTextError("Please enter text to decrypt.");
       return;
     }
-    setLoading(true)
+    setLoading(true);
     try {
       const response = await axios.post("http://localhost:8000/decrypt_text", {
         encrypted_text: text,
@@ -186,7 +202,7 @@ const HomePage = () => {
     } catch (err) {
       setTextError(err.response?.data?.detail || "Text decryption failed.");
     }
-    setLoading(false)
+    setLoading(false);
   };
 
   // Function to copy text to clipboard
@@ -195,9 +211,15 @@ const HomePage = () => {
     alert("Text copied to clipboard!");
   };
 
-  const handleLogout = () => {
-    localStorage.setItem("authenticated", "false");
-    navigate("/", { state: { message: "You have been logged out" } });
+  const handleLogout = async () => {
+    await axios.post(
+      "http://localhost:8000/logout",
+      {},
+      {
+        withCredentials: true,
+      }
+    );
+    navigate("/");
   };
 
   return (
@@ -209,7 +231,6 @@ const HomePage = () => {
           <FaSignOutAlt className="logout-icon" />
         </button>
       </header>
-
       <div className="cards-container">
         <div className="card">
           <div className="card-header">
@@ -287,7 +308,6 @@ const HomePage = () => {
           </div>
         </div>
       </div>
-
       {/* Result Card */}
       {showResultCard && (
         <div className="result-card">
