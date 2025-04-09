@@ -19,9 +19,26 @@ const HomePage = () => {
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
 
+  const validateSession = async () => {
+    try {
+      const response = await axios.get("/current_user", {
+        withCredentials: true,
+      });
+      return !!response.data.email;
+    } catch (error) {
+      console.error("Session validation failed:", error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     const fetchUserEmail = async () => {
       try {
+        const isValidSession = await validateSession();
+        if (!isValidSession) {
+          window.location.href = "/";
+          return;
+        }
         const response = await axios.get("/current_user");
         setUserEmail(response.data.email);
         console.log("Email id for current user : ", response.data.email);
@@ -40,6 +57,11 @@ const HomePage = () => {
   useEffect(() => {
     const fetchUserName = async () => {
       try {
+        const isValidSession = await validateSession();
+        if (!isValidSession) {
+          window.location.href = "/";
+          return;
+        }
         console.log("Email for full name :", userEmail);
         if (userEmail) {
           const response = await axios.post(
@@ -62,6 +84,11 @@ const HomePage = () => {
     setFileError("");
   };
   const encryptFile = async () => {
+    const isValidSession = await validateSession();
+    if (!isValidSession) {
+      window.location.href = "/";
+      return;
+    }
     if (!file) {
       setFileError("Please select a file first.");
       return;
@@ -94,8 +121,12 @@ const HomePage = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
-      setFileResult({ url: null, name: `${file.name}.enc` }); // Update fileResult
+      setFileResult({
+        url: `http://localhost:8000/download?file_path=${encodeURIComponent(
+          filePath
+        )}`,
+        name: `${file.name}.enc`,
+      });
       setFileError("");
     } catch (err) {
       setFileError(err.response?.data?.detail || "File encryption failed.");
@@ -104,6 +135,11 @@ const HomePage = () => {
   };
 
   const decryptFile = async () => {
+    const isValidSession = await validateSession();
+    if (!isValidSession) {
+      window.location.href = "/";
+      return;
+    }
     if (!file) {
       setFileError("Please select a file first.");
       return;
@@ -138,7 +174,12 @@ const HomePage = () => {
       link.click();
       document.body.removeChild(link);
 
-      setFileResult({ url: null, name: decryptedFileName });
+      setFileResult({
+        url: `http://localhost:8000/download?file_path=${encodeURIComponent(
+          filePath
+        )}`,
+        name: `${file.name}.enc`,
+      });
       setFileError("");
     } catch (err) {
       setFileError(err.response?.data?.detail || "File decryption failed.");
@@ -161,6 +202,11 @@ const HomePage = () => {
   };
 
   const encryptText = async () => {
+    const isValidSession = await validateSession();
+    if (!isValidSession) {
+      window.location.href = "/";
+      return;
+    }
     if (!text) {
       setTextError("Please enter text to encrypt.");
       return;
@@ -186,6 +232,11 @@ const HomePage = () => {
   };
 
   const decryptText = async () => {
+    const isValidSession = await validateSession();
+    if (!isValidSession) {
+      window.location.href = "/";
+      return;
+    }
     if (!text) {
       setTextError("Please enter text to decrypt.");
       return;
@@ -219,73 +270,84 @@ const HomePage = () => {
         withCredentials: true,
       }
     );
-    navigate("/");
+    window.history.pushState(null, "", "/");
+    navigate("/", { replace: true });
   };
 
   return (
-    <div className="home-container">
-      {loading && <LoadingPage />}.
-      <header className="header">
+    <div className="ed-home-container">
+      {loading && <LoadingPage />}
+      <header className="ed-header">
         <h1>Welcome {userName || "User"} to Encrypt and Decrypt WebApp</h1>
-        <button className="logout-button" onClick={handleLogout} title="Logout">
-          <FaSignOutAlt className="logout-icon" />
+        <button
+          className="ed-logout-button"
+          onClick={handleLogout}
+          title="Logout"
+        >
+          <FaSignOutAlt className="ed-logout-icon" />
         </button>
       </header>
-      <div className="cards-container">
-        <div className="card">
-          <div className="card-header">
+      <div className="ed-cards-container">
+        <div className="ed-card">
+          <div className="ed-card-header">
             <h2>File Encryption</h2>
           </div>
-          <div className="card-body">
-            <div className="file-upload-container">
-              <label htmlFor="file-upload" className="file-upload-label">
-                <FaUpload className="upload-icon" />
+          <div className="ed-card-body">
+            <div className="ed-file-upload-container">
+              <label htmlFor="ed-file-upload" className="ed-file-upload-label">
+                <FaUpload className="ed-upload-icon" />
                 <span>{file ? file.name : "Choose a file to upload"}</span>
               </label>
               <input
-                id="file-upload"
+                id="ed-file-upload"
                 type="file"
                 ref={fileInputRef}
-                className="file-input-hidden"
+                className="ed-file-input-hidden"
                 onChange={handleFileChange}
               />
             </div>
             {fileError && (
-              <p className="error-message">
+              <p className="ed-error-message">
                 {typeof fileError === "string"
                   ? fileError
                   : JSON.stringify(fileError)}
               </p>
             )}
             {fileResult && (
-              <button className="download-btn" onClick={downloadFile}>
+              <button className="ed-download-btn" onClick={downloadFile}>
                 Download {fileResult.name}
               </button>
             )}
-            <div className="button-group">
-              <button className="action-button encrypt" onClick={encryptFile}>
+            <div className="ed-button-group">
+              <button
+                className="ed-action-button ed-encrypt"
+                onClick={encryptFile}
+              >
                 Encrypt File
               </button>
-              <button className="action-button decrypt" onClick={decryptFile}>
+              <button
+                className="ed-action-button ed-decrypt"
+                onClick={decryptFile}
+              >
                 Decrypt File
               </button>
             </div>
           </div>
         </div>
 
-        <div className="card">
-          <div className="card-header">
+        <div className="ed-card">
+          <div className="ed-card-header">
             <h2>Text Encryption</h2>
           </div>
-          <div className="card-body">
+          <div className="ed-card-body">
             <textarea
-              className="text-input"
+              className="ed-text-input"
               placeholder="Enter your text here..."
               value={text}
               onChange={(e) => setText(e.target.value)}
             ></textarea>
             {textError && (
-              <p className="error-message">
+              <p className="ed-error-message">
                 {Array.isArray(textError)
                   ? textError.map((err, index) => (
                       <div key={index}>
@@ -297,11 +359,17 @@ const HomePage = () => {
                   : JSON.stringify(textError)}
               </p>
             )}
-            <div className="button-group">
-              <button className="action-button encrypt" onClick={encryptText}>
+            <div className="ed-button-group">
+              <button
+                className="ed-action-button ed-encrypt"
+                onClick={encryptText}
+              >
                 Encrypt Text
               </button>
-              <button className="action-button decrypt" onClick={decryptText}>
+              <button
+                className="ed-action-button ed-decrypt"
+                onClick={decryptText}
+              >
                 Decrypt Text
               </button>
             </div>
@@ -310,24 +378,24 @@ const HomePage = () => {
       </div>
       {/* Result Card */}
       {showResultCard && (
-        <div className="result-card">
-          <div className="card-header-text">
+        <div className="ed-result-card">
+          <div className="ed-card-header-text">
             <h3>Encrypted /Decrypted Text</h3>
             <FaCopy
-              className="copy-icon"
+              className="ed-copy-icon"
               onClick={copyToClipboard}
               title="Copy to clipboard"
             />
             <button
-              className="close-button"
+              className="ed-close-button"
               onClick={() => setShowResultCard(false)}
             >
               ×
             </button>
           </div>
-          <div className="card-body-result">
-            <div className="result-content">
-              <p className="text-result">{textResult}</p>
+          <div className="ed-card-body-result">
+            <div className="ed-result-content">
+              <p className="ed-text-result">{textResult}</p>
             </div>
           </div>
         </div>

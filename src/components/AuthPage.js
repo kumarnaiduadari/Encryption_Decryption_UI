@@ -42,6 +42,36 @@ const AuthPage = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    // Prevent back navigation
+    window.history.pushState(null, null, window.location.href);
+    window.onpopstate = function () {
+      window.history.go(1);
+    };
+  }, []);
+
+  // Modify your existing auth check useEffect
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/current_user", {
+          withCredentials: true,
+        });
+
+        if (response.data.email) {
+          navigate("/home", { replace: true }); // Important: replace navigation
+        }
+      } catch (error) {
+        console.log("User not authenticated, showing login page");
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuth();
+  }, [navigate]);
 
   // OTP Timer Effect
   useEffect(() => {
@@ -650,15 +680,22 @@ const AuthPage = () => {
     setIsVerifying(false);
     resetAllForms();
   };
-
+  // Add at the beginning of your return statement
+  if (isCheckingAuth) {
+    return null; // Or return <LoadingPage /> if you prefer
+  }
   return (
-    <div className="auth-container">
+    <div className="auth-container d-lg-flex flex-lg-row justify-content-center">
       {loading && <LoadingPage />}
 
-      <div className="auth-image-section">
-        <img src={authImage} alt="Authentication" className="auth-image" />
+      <div className="auth-image-section col-10 col-sm-8 col-md-6 col-lg-6 mt-4 d-flex flex-row ml-auto mr-auto">
+        <img
+          src={authImage}
+          alt="Authentication"
+          className="auth-image ml-auto mr-auto"
+        />
       </div>
-      <div className="auth-wrapper">
+      <div className="auth-wrapper col-10 col-sm-8 col-md-6  col-lg-4 col-xl-3 mt-4 ml-auto mr-auto">
         <div className="auth-tabs">
           <button
             className={`tab-button ${isLogin ? "active" : ""}`}
@@ -974,7 +1011,7 @@ const AuthPage = () => {
                 className="auth-button"
                 onClick={() => setActiveForm("login")}
               >
-                Proceed to Login
+                Go to Login
               </button>
             </div>
           </div>

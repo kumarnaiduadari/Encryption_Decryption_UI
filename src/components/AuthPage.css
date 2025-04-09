@@ -1,8 +1,3 @@
-/* Container for the entire auth page */
-
-.auth-image-section{
-  padding-right: 80px;
-}
 .auth-image {  
   width: 100%; /* Adjusts to parent container */
   max-width: 700px; /* Prevents it from becoming too large */
@@ -11,18 +6,19 @@
   
 }
 .auth-container {
-  display: flex;
+  /* display: flex; */
   justify-content: space-between;
   align-items: center;
   min-height: 100vh;
   background: #f0f2f5;
-  padding: 0 150px; /* Add padding on both sides to create space */
+ 
+   /* Add padding on both sides to create space */
 }
 /* Wrapper for the auth card */
 .auth-wrapper {
-  width: 400px;
+  /* width: 400px; */
   background: white;
-  border-radius: 50px;
+  border-radius: 70px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
@@ -35,7 +31,7 @@
 
 .tab-button {
   flex: 1;
-  padding: 15px;
+  padding: 15px 15px 10px 10px;
   border: none;
   background: white;
   font-size: 16px;
@@ -97,6 +93,13 @@
 .input-group {
   margin-bottom: 15px;
   position: relative;
+}
+
+.input-group input[type="text"]::placeholder {
+  font-size: 13px; /* Adjust font size */
+  white-space: nowrap; /* Prevent wrapping */
+  overflow: hidden; /* Hide overflow */
+  text-overflow: ellipsis; /* Add "..." if text is too long */
 }
 
 input {

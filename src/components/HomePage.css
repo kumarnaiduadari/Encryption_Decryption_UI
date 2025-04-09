@@ -1,47 +1,41 @@
-.home-container {
-
+.ed-home-container {
   text-align: center;
 }
 
-.header {
+.ed-header {
   background-color: #f0f0f0;
-  /* Light gray background for the header */
   padding: 12px;
   border-bottom: 2px solid #ddd;
-  /* Subtle border to separate from content */
   margin-bottom: 20px;
-  /* Space between header and cards */
 }
 
-.header h1 {
+.ed-header h1 {
   margin: 0;
   font-size: 28px;
   color: #333;
-  /* Darker text color for contrast */
 }
 
-.logout-button {
+.ed-logout-button {
   position: absolute;
   right: 20px;
-  top: 20px;
+  top: 15px;
   background: none;
   border: none;
   cursor: pointer;
-
   transition: transform 0.2s, color 0.2s;
 }
 
-.logout-icon {
+.ed-logout-icon {
   font-size: 24px;
   color: #555;
 }
 
-.logout-button:hover .logout-icon {
+.ed-logout-button:hover .ed-logout-icon {
   color: #ff4444;
   transform: scale(1.1);
 }
 
-.cards-container {
+.ed-cards-container {
   display: flex;
   justify-content: center;
   gap: 150px;
@@ -49,7 +43,7 @@
   margin-top: 100px;
 }
 
-.card {
+.ed-card {
   background-color: #f9f9f9;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -57,40 +51,39 @@
   padding: 20px;
 }
 
-.card-header {
+.ed-card-header {
   margin-bottom: 15px;
 }
-.card-header-text {
-  margin-bottom: 0; /* ✅ Removes unnecessary space */
+
+.ed-card-header-text {
+  margin-bottom: 0;
   font-size: 1.2em;
   color: #333;
   top: 2px;
 }
 
-.card-body {
+.ed-card-body {
   display: flex;
   flex-direction: column;
   align-items: center;
   min-height: 250px;
-  /* Ensures equal height for both cards */
   justify-content: space-between;
-  /* Distributes content evenly */
 }
-.card-body-result {
+
+.ed-card-body-result {
   display: flex;
   flex-direction: column;
   align-items: center;
   min-height: 80px;
-  /* Ensures equal height for both cards */
   justify-content: space-between;
-  /* Distributes content evenly */
 }
-.file-upload-container {
+
+.ed-file-upload-container {
   margin-bottom: 15px;
   margin-top: 45px;
 }
 
-.file-upload-label {
+.ed-file-upload-label {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -102,43 +95,34 @@
   transition: background-color 0.3s;
 }
 
-.file-upload-label:hover {
+.ed-file-upload-label:hover {
   background-color: #d0d0d0;
 }
 
-.upload-icon {
+.ed-upload-icon {
   font-size: 20px;
   color: #555;
 }
 
-.file-input-hidden {
+.ed-file-input-hidden {
   display: none;
 }
 
-.error-message {
+.ed-error-message {
   color: red;
   font-size: 14px;
   margin: 10px 0;
   flex-grow: 1;
-  /* Allows error/result to take available space */
 }
 
-.result {
-  color: #d81515;
-  font-size: 16px;
-  margin: 10px 0;
-  flex-grow: 1;
-  /* Allows error/result to take available space */
-}
-
-.button-group {
+.ed-button-group {
   display: flex;
   justify-content: space-between;
   width: 100%;
   gap: 10px;
 }
 
-.action-button {
+.ed-action-button {
   flex: 1;
   padding: 10px;
   border: none;
@@ -148,25 +132,25 @@
   transition: background-color 0.3s;
 }
 
-.action-button.encrypt {
+.ed-action-button.ed-encrypt {
   background-color: #4caf50;
   color: white;
 }
 
-.action-button.encrypt:hover {
+.ed-action-button.ed-encrypt:hover {
   background-color: #45a049;
 }
 
-.action-button.decrypt {
+.ed-action-button.ed-decrypt {
   background-color: #2196f3;
   color: white;
 }
 
-.action-button.decrypt:hover {
+.ed-action-button.ed-decrypt:hover {
   background-color: #1e87db;
 }
 
-.text-input {
+.ed-text-input {
   width: 100%;
   height: 80px;
   padding: 10px;
@@ -177,8 +161,7 @@
   resize: none;
 }
 
-
-.download-btn {
+.ed-download-btn {
   background-color: #4caf50;
   color: white;
   padding: 10px 20px;
@@ -189,17 +172,16 @@
   margin-top: 10px;
 }
 
-.download-btn:hover {
+.ed-download-btn:hover {
   background-color: #45a049;
 }
 
-/* Result Card Styles */
-.result-card {
+.ed-result-card {
   margin: 20px auto;
   justify-content: center;
   width: 80%;
   max-width: 600px;
-  top:2px;
+  top: 2px;
   background: #b2d1e6;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -207,7 +189,7 @@
   position: relative;
 }
 
-.result-card .card-header {
+.ed-result-card .ed-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -215,84 +197,82 @@
   padding-bottom: 10px;
 }
 
-.result-card .card-header h2 {
+.ed-result-card .ed-card-header h2 {
   margin: 0;
   font-size: 1.5em;
 }
 
-.close-button {
+.ed-close-button {
   background: none;
-  position: absolute; /* ✅ Use absolute to position it relative to the parent */
-  top: 10px; /* ✅ Distance from the top */
-  right: 10px; /* ✅ Distance from the right */
+  position: absolute;
+  top: 10px;
+  right: 10px;
   border: none;
   font-size: 1.5em;
   cursor: pointer;
   color: #888;
 }
 
-.close-button:hover {
+.ed-close-button:hover {
   color: #000;
 }
 
-
-.result-content {
+.ed-result-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-top: 10px;
 }
 
-.result-content p {
+.ed-result-content p {
   margin: 0;
   word-break: break-all;
   flex-grow: 1;
 }
 
-.result-content {
-  display: flex; /* Use flexbox to align items */
-  align-items: center; /* Vertically align items in the center */
+.ed-result-content {
+  display: flex;
+  align-items: center;
 }
 
-.text-result {
-  flex-grow: 1; /* Allow text to take up remaining space */
-  margin: 0; /* Reset default paragraph margins */
-  word-break: break-word; /* Prevents long words from overflowing */
+.ed-text-result {
+  flex-grow: 1;
+  margin: 0;
+  word-break: break-word;
 }
 
-.card-body-result {
-  display: flex; /* Use flexbox to align items */
-  align-items: center; /* Vertically align items in the center */
-  justify-content: space-between; /* Distribute space between text and icon */
+.ed-card-body-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.result-content {
-  flex-grow: 1; /* Allow text to take up remaining space */
+.ed-result-content {
+  flex-grow: 1;
 }
 
-.text-result {
-  margin: 0; /* Reset default paragraph margins */
-  word-break: break-word; /* Prevents long words from overflowing */
+.ed-text-result {
+  margin: 0;
+  word-break: break-word;
 }
 
-.copy-icon {
-  width: 15px; /* Fixed width */
-  height: 15px; /* Fixed height */
-  font-size: 20px; /* Ensure consistent font size */
-  cursor: pointer; /* Pointer for interactivity */
-  color: #007bff; /* Default color */
+.ed-copy-icon {
+  width: 15px;
+  height: 15px;
+  font-size: 20px;
+  cursor: pointer;
+  color: #007bff;
 }
 
-.copy-icon:hover {
-  color: #0056b3; /* Change color on hover */
-  transform: none; /* Prevent resizing or scaling */
+.ed-copy-icon:hover {
+  color: #0056b3;
+  transform: none;
 }
 
-
-
-.result-card h3 {
+.ed-result-card h3 {
   margin: 0;
   margin-bottom: 3;
   padding: 0;
-  line-height: 1.2; /* Optional: Adjust for better vertical alignment */
+  line-height: 1.2;
 }
+
